@@ -9,6 +9,7 @@ const __dirname = dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [
     preact(),
     VitePWA({

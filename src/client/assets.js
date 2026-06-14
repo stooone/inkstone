@@ -68,7 +68,7 @@ const readAsset = async (path) => {
     throw new Error(`Asset not found: ${path}`);
   } else {
     // Read static assets from local Vite public/assets/ directory
-    return fetchUrl(`/assets/${path}`);
+    return fetchUrl(`./assets/${path}`);
   }
 }
 
