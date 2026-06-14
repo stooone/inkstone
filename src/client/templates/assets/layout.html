@@ -1,0 +1,51 @@
+<!--
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *  Copyright 2026 Juhász Péter Károly (stone "at" midway.hu)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<template name="assets">
+  <div id="assets" style="{{style}}">
+    <div class="loader">
+      {{#if started}}
+        <div class="status">
+          Downloading file {{counters}}...
+        </div>
+        <div class="progress-bar">
+          <div class="progress" style="width: {{progress}}%;"></div>
+        </div>
+      {{else}}
+        {{#if error}}
+          <div class="header error">{{error}}</div>
+          <div class="header">
+            Please try again, or send an email to
+            <a href="mailto:kshaunak+inkstone@gmail.com">Inkstone support</a>
+            if the error persists.
+          </div>
+          <div class="start">Retry download</div>
+        {{else}}
+          <div class="header">
+            Before using Inkstone, you must download the character data files.
+            These files total ~35Mb in size. It is recommended that you
+            download them over a WiFi connection.
+          </div>
+          <div class="start">Start download</div>
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
+</template>

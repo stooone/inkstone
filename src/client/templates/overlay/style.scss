@@ -1,0 +1,57 @@
+/*
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *  Copyright 2026 Juhász Péter Károly (stone "at" midway.hu)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@import '{}/client/style.scss';
+
+#overlay {
+  position: fixed;
+  top: 0;
+  z-index: 9999;
+
+  &.block {
+    height: 100%;
+    width: 100%;
+    pointer-events: all;
+  }
+
+  > .focus {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 0.3s, top 0.3s, left 0.3s, width 0.3s, height 0.3s;
+  }
+
+  > .guard {
+    @include full-size;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  > .label {
+    background-color: black;
+    color: white;
+    display: none;
+    font-size: 5vw;
+    position: fixed;
+    padding: 4%;
+    width: 100%;
+  }
+}

@@ -1,0 +1,138 @@
+<!--
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *  Copyright 2026 Juhász Péter Károly (stone "at" midway.hu)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<template name="choices">
+  <div class="block group list-management-options">
+    {{#ionItem class="item-divider"}}
+      Options
+    {{/ionItem}}
+    {{#if groups.length}}
+      {{#ionItem class="all"}}
+        <div data-mode={{mode}}>{{all}}</div>
+      {{/ionItem}}
+    {{else}}
+      {{#ionItem class="back"}}
+        <div data-mode={{mode}}>{{back}}</div>
+      {{/ionItem}}
+    {{/if}}
+  </div>
+  {{#each group in groups}}
+    <div class="block group">
+      {{#ionItem class="item-divider"}}
+        {{group.label}}
+      {{/ionItem}}
+      {{#each list in group.lists}}
+        {{#ionItem class="list-management-option"}}
+          <div data-variable={{list.variable}}
+               data-mode={{mode}}>{{list.label}}</div>
+        {{/ionItem}}
+      {{/each}}
+    </div>
+  {{/each}}
+</template>
+
+<template name="delete_lists">
+  {{#ionic}}
+    {{#contentFor "headerButtonLeft"}}
+      {{> ionNavBackButton text="Done"}}
+    {{/contentFor}}
+    {{#contentFor "headerTitle"}}
+      <h1 class="title">Delete Lists</h1>
+    {{/contentFor}}
+    {{#ionList}}
+      {{> choices all="Delete all imported lists"
+                  back="No imported lists. Tap to go back."
+                  groups=groups mode="delete"}}
+    {{/ionList}}
+  {{/ionic}}
+</template>
+
+<template name="import_lists">
+  {{#ionic}}
+    {{#contentFor "headerButtonLeft"}}
+      {{> ionNavBackButton text="Done"}}
+    {{/contentFor}}
+    {{#contentFor "headerTitle"}}
+      <h1 class="title">Import Lists</h1>
+    {{/contentFor}}
+    {{#ionList}}
+      {{> choices all="Import all GitHub lists"
+                  back="No new lists. Tap to go back."
+                  groups=groups mode="import"}}
+    {{/ionList}}
+  {{/ionic}}
+</template>
+
+<template name="import_saved_list">
+  <div id="import-saved-list">
+    <input name="category" placeholder="Category" type="text">
+    <input name="name" placeholder="Name" type="text">
+    <input name="file" type="file">
+  </div>
+</template>
+
+<template name="imports">
+  <div id="imports">
+    <div class="option github">Download from GitHub</div>
+    <div class="option saved">Import a saved list</div>
+    <div class="option format">See the list data format</div>
+  </div>
+</template>
+
+<template name="manage_blacklist">
+  {{#ionic}}
+    {{#contentFor "headerButtonLeft"}}
+      {{> ionNavBackButton text="Done"}}
+    {{/contentFor}}
+    {{#contentFor "headerTitle"}}
+      <h1 class="title">Manage Blacklist</h1>
+    {{/contentFor}}
+    {{#ionList}}
+      <div class="block group list-management-options">
+        {{#ionItem class="item-divider"}}
+          Options
+        {{/ionItem}}
+        {{#if blacklist.length}}
+          {{#ionItem class="all"}}
+            Clear blacklist
+          {{/ionItem}}
+        {{else}}
+          {{#ionItem class="back"}}
+            No blacklisted words. Tap to go back.
+          {{/ionItem}}
+        {{/if}}
+      </div>
+      {{#if blacklist.length}}
+        <div class="block group">
+          {{#ionItem class="item-divider"}}
+            Blacklisted Words
+          {{/ionItem}}
+          {{#each item in blacklist}}
+            {{#ionItem class="list-management-option"}}
+              <div data-word={{item.word}}>
+                {{item.word}} ({{item.pinyin}}) - {{item.definition}}
+              </div>
+            {{/ionItem}}
+          {{/each}}
+        </div>
+      {{/if}}
+    {{/ionList}}
+  {{/ionic}}
+</template>

@@ -1,0 +1,181 @@
+/*
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *  Copyright 2026 Juhász Péter Károly (stone "at" midway.hu)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@import '{}/client/style.scss';
+
+$header-height: 5 * $font-size / 4;
+$swash-height: 18vw;
+$swash-width: 63vw;
+
+@font-face {
+  font-family: anke-calligraphic;
+  src: url("fonts/anke-calligraphic-2.00.ttf") format("truetype");
+}
+
+body {
+  background-color: $base-color;
+  color: $font-color;
+  font-family: Georgia, serif;
+  margin: 0;
+  overflow: hidden;
+  position: absolute;
+  text-align: center;
+
+  .ionic-body {
+    text-align: left;
+  }
+}
+
+#header {
+  background-color: #666;
+  height: $header-height;
+  line-height: $header-height;
+
+  > .info {
+    color: white;
+    font-family: sans-serif;
+    font-size: $header-height / 2;
+    padding: 0 $header-height / 4;
+
+    &.left { float: left; }
+    &.right { float: right; }
+  }
+}
+
+#layout {
+  top: $header-height !important;
+
+  &, > .background, > .foreground {
+    @include full-size;
+  }
+
+  &.theme-flat {
+    > .background {
+      background-color: #a4d4ff;
+    }
+
+    #teach {
+      > .prompt, > .wrapper > .flashcard {
+        background-color: #f5f5f5;
+      }
+    }
+  }
+
+  &.theme-painterly, &.theme-textured {
+    > .background {
+      background-image: url("graphics/background.jpg");
+      background-position-y: -100px;
+      background-size: cover;
+    }
+
+    #teach {
+      > .prompt {
+        box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.5);
+        opacity: 0.92;
+      }
+
+      > .scroller > .wrapper > .flashcard {
+        box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.5);
+        opacity: 0.92;
+      }
+    }
+  }
+
+  &.theme-textured {
+    > .foreground {
+      background-image: url("graphics/foreground.jpg");
+      background-size: cover;
+      mix-blend-mode: difference;
+    }
+  }
+
+  > .foreground {
+    pointer-events: none;
+    z-index: 9999999999;
+  }
+}
+
+#index {
+  background-color: $base-color;
+  color: white;
+  @include full-size;
+
+  > .wrapper {
+    @include full-size;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+
+    > .title {
+      font-family: anke-calligraphic;
+      font-size: 4 * $font-size;
+      line-height: 4 * $font-size;
+      transform: translateY(4vw);
+    }
+
+    > .version {
+      font-family: sans-serif;
+      font-size: $header-height / 2;
+      margin-bottom: 20%;
+    }
+
+    > .teach, > .options > .option {
+      text-decoration: none;
+      @include buttonlike;
+    }
+
+    > .teach {
+      -webkit-mask-image: url("graphics/swash.svg");
+      -webkit-mask-position-x: 0.025 * $swash-width;
+      -webkit-mask-position-y: 0.025 * $swash-height;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: $swash-width $swash-height;
+      background-color: white;
+      color: $base-color;
+      display: inline-block;
+      font-size: 2 * $swash-height / 3;
+      font-weight: bold;
+      height: $swash-height;
+      line-height: $swash-height;
+      margin-bottom: 10%;
+      width: $swash-width;
+
+      &:active {
+        background-color: $link-color;
+      }
+    }
+
+    > .options > .option {
+      color: white;
+      display: inline-block;
+      font-size: 0.8 * $font-size;
+      margin: 4%;
+      width: 20%;
+
+      &:active {
+        color: $link-color;
+      }
+
+      > .icon {
+        font-size: 2 * $font-size;
+      }
+    }
+  }
+}
