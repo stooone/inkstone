@@ -1,0 +1,73 @@
+/*
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@import '{}/client/style.scss';
+
+.popup-container {
+  pointer-events: auto;
+
+  > .popup {
+    background-color: white;
+    width: 76%;
+
+    > .popup-header > .popup-title {
+      font-size: 5.6vw;
+      margin: 4.2vw 0;
+    }
+
+    > .popup-body {
+      font-size: 4.2vw;
+      line-height: 5.6vw;
+      padding: 0 4.2vw 4.2vw;
+      text-align: left;
+    }
+
+    > .popup-buttons {
+      min-height: 0;
+      padding: 0 4.2vw 4.2vw;
+
+      > .button {
+        background-color: #888;
+        color: white;
+        font-size: 5.6vw;
+        line-height: 9.8vw;
+        margin: 0 0 0 4.2vw;
+        min-height: 0;
+        padding: 0;
+        vertical-align: center;
+
+        &:active {
+          background-color: $active-color;
+        }
+
+        &:first-child {
+          margin-left: 0;
+        }
+
+        &.bold {
+          background-color: #444;
+
+          &:active {
+            background-color: $link-color;
+          }
+        }
+      }
+    }
+  }
+}

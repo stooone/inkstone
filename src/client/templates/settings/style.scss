@@ -1,0 +1,49 @@
+/*
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@import '{}/client/style.scss';
+
+#backup, #confirm-dangerous-action, #restore {
+  > .warning {
+    margin-bottom: 3 * $font-size / 4;
+  }
+
+  > input[type="file"] {
+    border: 1px solid white;
+    border-radius: $font-size / 4;
+    font-size: 7 * $font-size / 8;
+    height: 3 * $font-size / 2;
+    line-height: 3 * $font-size / 2;
+
+    &.error {
+      border-color: red;
+    }
+  }
+
+  > input[type="text"] {
+    background-color: #eee;
+    border: 1px solid $base-color;
+    height: 9vw;
+    padding: 0 2vw;
+
+    &.error {
+      border-color: red;
+    }
+  }
+}

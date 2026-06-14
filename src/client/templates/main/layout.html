@@ -1,0 +1,61 @@
+<!--
+ *  Copyright 2016 Shaunak Kishore (kshaunak "at" gmail.com)
+ *
+ *  This file is part of Inkstone.
+ *
+ *  Inkstone is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Inkstone is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Inkstone.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<head>
+  <title>Inkstone</title>
+  <meta name="viewport" content="
+      width=device-width, user-scalable=no, initial-scale=1">
+</head>
+
+<template name="layout">
+  <div id="header">
+    <div class="info left">{{time}}</div>
+    <div class="info right">{{remainder}}</div>
+  </div>
+  <div id="layout" class="theme-{{theme}}">
+    <div class="background"></div>
+    {{#transitioner}}
+      {{> yield}}
+    {{/transitioner}}
+    {{> answer}}
+    <div class="foreground"></div>
+  </div>
+  {{> assets}}
+</template>
+
+<template name="index">
+  <div id="index">
+    <div class="wrapper">
+      <div class="title">Inkstone</div>
+      <div class="version">v. 0.1.4</div>
+      <a class="teach" href="{{pathFor 'teach'}}">Write</a>
+      <div class="options">
+        {{> option icon="android-list" label="Lists" route="lists"}}
+        {{> option icon="android-settings" label="Settings" route="settings"}}
+        {{> option icon="help-circled" label="Help" route="help"}}
+      </div>
+    </div>
+  </div>
+</template>
+
+<template name="option">
+  <a class="option {{route}}" href="{{pathFor route}}">
+    <div class="icon"><i class="ion-{{icon}}"></i></div>{{label}}
+  </a>
+</template>

@@ -1,0 +1,55 @@
+import { defineConfig } from 'vite'
+import preact from '@preact/preset-vite'
+import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    preact(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'fonts/*', 'graphics/*'],
+      manifest: {
+        name: 'Inkstone',
+        short_name: 'Inkstone',
+        description: 'Learn to write Chinese characters offline',
+        theme_color: '#444444',
+        background_color: '#444444',
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: 'graphics/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'graphics/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,json,txt,list,ttf,jpg,png,svg}'],
+        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024 // Allow up to 25MB to accommodate the 17MB Chinese font
+      }
+    })
+  ],
+  resolve: {
+    alias: {
+      '/src': resolve(__dirname, './src'),
+      '/client': resolve(__dirname, './src/client'),
+      '/lib': resolve(__dirname, './src/lib'),
+      react: 'preact/compat',
+      'react-dom/test-utils': 'preact/test-utils',
+      'react-dom': 'preact/compat',
+      'react/jsx-runtime': 'preact/jsx-runtime'
+    }
+  }
+})
