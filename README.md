@@ -47,5 +47,50 @@ This will generate a `dist/` directory containing the purely static HTML/JS/CSS 
 
 ### Open source credits
 
-[Inkstone was made possible by a number of other open-source projects,
-a full listing of which can be found here.](https://www.skishore.me/inkstone/docs/credits.html)
+Inkstone was made possible by a number of other open-source projects:
+
+* **MeteorJS**
+  - Copyright 2011-2016 Meteor Development Group.
+  - Licensed under the MIT License.
+  - [https://www.meteor.com/](https://www.meteor.com/)
+* **Apache Cordova**
+  - Copyright 2012, 2013, 2015 The Apache Software Foundation.
+  - Licensed under the Apache License Version 2.0.
+  - [https://cordova.apache.org/](https://cordova.apache.org/)
+* **Arphic PL KaitiM GB and UKai**
+  - Copyright 1999 Arphic Technology Co., Ltd.
+  - Licensed under the Arphic Public License.
+  - [http://www.arphic.com.tw/en/home/index](http://www.arphic.com.tw/en/home/index)
+* **Make Me a Hanzi**
+  - Copyright 1999 Arphic Technology Co., Ltd.; Copyright 2016 Shaunak Kishore.
+  - Licensed under the Arphic Public License.
+  - [https://github.com/skishore/makemeahanzi](https://github.com/skishore/makemeahanzi)
+* **100 Common Radicals**
+  - Copyright 2012 Olle Linge.
+  - Free for use with attribution.
+  - [http://www.hackingchinese.com/kickstart-your-character-learning-with-the-100-most-common-radicals/](http://www.hackingchinese.com/kickstart-your-character-learning-with-the-100-most-common-radicals/)
+* **New HSK Word Lists**
+  - Copyright 2014 alan@hskhsk.com.
+  - Free to be copied, distributed, or modified for non-commercial use.
+  - [http://www.hskhsk.com/word-lists.html](http://www.hskhsk.com/word-lists.html)
+* **JavaScript MD5**
+  - Copyright 2011, Sebastian Tschan.
+  - Licensed under the MIT License.
+  - [https://github.com/blueimp/JavaScript-MD5](https://github.com/blueimp/JavaScript-MD5)
+* **CreateJS**
+  - Copyright 2014 gskinner.com, inc.
+  - Licensed under the MIT License.
+  - [http://createjs.com/](http://createjs.com/)
+* **Ionicons**
+  - Copyright 2016 Drifty.
+  - Licensed under the MIT License.
+  - [http://ionicons.com/](http://ionicons.com/)
+* **Skritter HTML5**
+  - Copyright 2015 Inkren Inc.
+  - Licensed under the MIT License.
+  - [https://github.com/skritter/skritter-html5](https://github.com/skritter/skritter-html5)
+* **Meteoric**
+  - Copyright 2015 Nick Wientge.
+  - Licensed under the MIT License.
+  - [https://github.com/meteoric/meteor-ionic](https://github.com/meteoric/meteor-ionic)
+
