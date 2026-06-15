@@ -691,3 +691,108 @@ body { margin: 0; overflow: hidden; height: 100dvh; }
   font-family: var(--font-ui);
   width: 100%;
 }
+
+/* ── Assets View Database Importer ── */
+.assets-view-container {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.loader-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.assets-logo {
+  font-family: var(--font-cjk);
+  font-size: 64px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(181,69,27,0.2));
+}
+
+.assets-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.progress-container {
+  margin-top: 24px;
+}
+
+.status {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.assets-warning {
+  font-size: 12px;
+  color: var(--orange);
+  margin: 8px 0 0;
+}
+
+.info-container {
+  margin-top: 20px;
+}
+
+.desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.error-msg {
+  color: var(--red);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.btn-download {
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(181,69,27,0.3);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-download:active {
+  background: var(--accent-h);
+  transform: scale(0.97);
+}
+

@@ -38,6 +38,8 @@ export function App() {
   const [popup, setPopup] = useState(null);  // {title, text, buttons, content}
   const [answerChar, setAnswerChar] = useState(null);
   const [slideDir, setSlideDir] = useState('forward');
+  const [needDownload, setNeedDownload] = useState(false);
+  const [checkingAssets, setCheckingAssets] = useState(true);
 
   const timeLeft   = useReactive(() => Timing.getTimeLeft(), []);
   const remainder  = useReactive(() => Timing.getRemainder(), []);
@@ -57,6 +59,37 @@ export function App() {
     onHash();
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // Check for missing character database assets on load
+  useEffect(() => {
+    kCharacters.then((characters) => {
+      if (!characters) {
+        setCheckingAssets(false);
+        return;
+      }
+      const targets = {};
+      for (let character of Object.keys(characters)) {
+        const asset = assetForCharacter(character);
+        targets[asset] = (targets[asset] || 0) + characters[character];
+      }
+      const missing = [];
+      for (const asset of Object.keys(targets)) {
+        if (Assets.getVersion(asset) < targets[asset]) {
+          missing.push({ asset, version: targets[asset] });
+        }
+      }
+      if (missing.length > 0) {
+        setNeedDownload(true);
+      } else {
+        setNeedDownload(false);
+      }
+      setCheckingAssets(false);
+    }).catch((err) => {
+      console.error('Failed to check assets:', err);
+      setCheckingAssets(false);
+    });
+  }, []);
+
 
   const navigate = useCallback((view, dir = 'forward') => {
     setPrevRoute(route);
@@ -78,6 +111,22 @@ export function App() {
   }[route] || 'Inkstone';
 
   const showBack = route !== 'index' && route !== 'teach';
+
+  if (checkingAssets) {
+    return (
+      <div class="assets-view-container">
+        <div class="loader-card">
+          <div class="assets-logo">石</div>
+          <h2 class="assets-title">Loading Inkstone...</h2>
+          <div class="status">Checking database status</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (needDownload) {
+    return <AssetsView onComplete={() => setNeedDownload(false)} />;
+  }
 
   return (
     <>
@@ -127,3 +176,4 @@ export function App() {
     </>
   );
 }
+
