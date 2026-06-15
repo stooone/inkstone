@@ -9,9 +9,13 @@ import ListsView from './views/ListsView';
 import HelpView from './views/HelpView';
 import AnswerPanel from './views/AnswerPanel';
 import Popup from './views/Popup';
+import AssetsView from './views/AssetsView';
 
 import { Timing } from '/client/model/timing';
 import { useReactive } from './hooks/useReactive';
+import { kCharacters } from '/client/assets';
+import { Assets } from '/client/model/assets';
+import { assetForCharacter } from '/lib/characters';
 
 // Format seconds as HH:MM or MM:SS
 function formatTime(secs) {
