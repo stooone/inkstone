@@ -1,4 +1,4 @@
-const kHomePage = 'https://www.skishore.me/inkstone';
+const kHomePage = window.location.origin + window.location.pathname.replace(/\/(index\.html)?$/, '');
 
 const assert = (condition, message) => {
   if (!condition) {

@@ -1,6 +1,6 @@
 import localforage from 'localforage';
 import { check, Match } from '../store/meteor-mock';
-import { assetForCharacter } from '/lib/characters';
+import { CharacterData, assetForCharacter } from '/lib/characters';
 import { assert, kHomePage, fetchUrl } from '/lib/base';
 
 const kListColumns = [
@@ -72,12 +72,82 @@ const readAsset = async (path) => {
   }
 }
 
+// In-memory cache of fully parsed character data objects
+const characterCache = {};
+
+// In-memory set of loaded group IDs to avoid refetching/re-parsing the group files
+const loadedGroups = new Set();
+
 // Input: a single Chinese character
-const readCharacter = (character) => {
-  if (!character) return Promise.reject('No character provided.');
-  const path = `characters/${character.codePointAt(0)}`;
-  return readAsset(path).then(JSON.parse);
-}
+const readCharacter = async (character) => {
+  if (!character) throw new Error('No character provided.');
+  
+  // 1. Check in-memory cache first
+  if (characterCache[character]) {
+    return characterCache[character];
+  }
+  
+  // 2. Check localForage for any customized/edited characters (which are written individually)
+  const charCode = character.codePointAt(0);
+  const cacheKey = `characters/${charCode}`;
+  try {
+    const customData = await localforage.getItem('asset.' + cacheKey);
+    if (customData !== null) {
+      const parsed = JSON.parse(customData);
+      characterCache[character] = parsed;
+      return parsed;
+    }
+  } catch (e) {
+    console.error('Failed to read from localForage cache:', e);
+  }
+  
+  // 3. Look up the group asset file for this character
+  const groupAsset = assetForCharacter(character); // e.g. "characters_v2/78"
+  const groupId = groupAsset.substring('characters_v2/'.length);
+  
+  // If we already loaded this group file, and it wasn't in cache, it means the character is missing from the group
+  if (loadedGroups.has(groupId)) {
+    throw new Error(`Character ${character} not found in loaded group file ${groupAsset}`);
+  }
+  
+  // 4. Fetch and parse the group file
+  try {
+    const groupContent = await readAsset(groupAsset);
+    const lines = groupContent.split('\n');
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const data = JSON.parse(line);
+        if (data && data.character) {
+          characterCache[data.character] = data;
+        }
+      } catch (err) {
+        console.error(`Failed to parse line in group asset ${groupAsset}:`, err);
+      }
+    }
+    loadedGroups.add(groupId);
+    
+    // Now return the character if we found it in the parsed group
+    if (characterCache[character]) {
+      return characterCache[character];
+    }
+  } catch (err) {
+    console.error(`Failed to fetch or parse group asset ${groupAsset}:`, err);
+  }
+  
+  // 5. Final fallback to old URL if not found locally (in case local database is incomplete)
+  const fallbackUrl = `${kHomePage}/assets/characters/${charCode}`;
+  try {
+    const remoteData = await fetchUrl(fallbackUrl);
+    const parsed = JSON.parse(remoteData);
+    characterCache[character] = parsed;
+    // Cache it to localForage so we don't fetch it again
+    await localforage.setItem('asset.' + cacheKey, remoteData);
+    return parsed;
+  } catch (err) {
+    throw new Error(`Asset not found: ${character}`);
+  }
+};
 
 // Input: an item, which includes a word and a list of lists it appears in
 const readItem = (item, charset) => {

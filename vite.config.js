@@ -37,7 +37,10 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,json,txt,list,ttf,jpg,png,svg}'],
+        globPatterns: [
+          '**/*.{js,css,html,json,txt,list,ttf,jpg,png,svg}',
+          'assets/characters_v2/*'
+        ],
         maximumFileSizeToCacheInBytes: 25 * 1024 * 1024 // Allow up to 25MB to accommodate the 17MB Chinese font
       }
     })

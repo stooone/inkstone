@@ -9,13 +9,9 @@ import ListsView from './views/ListsView';
 import HelpView from './views/HelpView';
 import AnswerPanel from './views/AnswerPanel';
 import Popup from './views/Popup';
-import AssetsView from './views/AssetsView';
 
 import { Timing } from '/client/model/timing';
 import { useReactive } from './hooks/useReactive';
-import { kCharacters } from '/client/assets';
-import { Assets } from '/client/model/assets';
-import { assetForCharacter } from '/lib/characters';
 
 // Format seconds as HH:MM or MM:SS
 function formatTime(secs) {
@@ -64,34 +60,10 @@ export function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Check for missing character database assets on load
+  // Check for missing character database assets on load (always ready since self-hosted)
   useEffect(() => {
-    kCharacters.then((characters) => {
-      if (!characters) {
-        setCheckingAssets(false);
-        return;
-      }
-      const targets = {};
-      for (let character of Object.keys(characters)) {
-        const asset = assetForCharacter(character);
-        targets[asset] = (targets[asset] || 0) + characters[character];
-      }
-      const missing = [];
-      for (const asset of Object.keys(targets)) {
-        if (Assets.getVersion(asset) < targets[asset]) {
-          missing.push({ asset, version: targets[asset] });
-        }
-      }
-      if (missing.length > 0) {
-        setNeedDownload(true);
-      } else {
-        setNeedDownload(false);
-      }
-      setCheckingAssets(false);
-    }).catch((err) => {
-      console.error('Failed to check assets:', err);
-      setCheckingAssets(false);
-    });
+    setNeedDownload(false);
+    setCheckingAssets(false);
   }, []);
 
 
@@ -128,9 +100,7 @@ export function App() {
     );
   }
 
-  if (needDownload) {
-    return <AssetsView onComplete={() => setNeedDownload(false)} />;
-  }
+
 
   return (
     <>
