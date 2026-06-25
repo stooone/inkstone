@@ -401,6 +401,25 @@ body { margin: 0; overflow: hidden; height: 100dvh; }
 }
 .error-option-btn:active { background: var(--bg2); }
 
+/* Load-error card (shown when a specific card fails to load) */
+.load-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 280px;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+.load-error-card p {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 320px;
+}
+
+
 /* Grading overlay */
 .grading-overlay {
   position: absolute;

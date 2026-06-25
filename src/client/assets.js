@@ -180,7 +180,9 @@ const readList = (list) => {
     readAsset(`lists/${list}.list`),
     kCharacters,
   ]).then((resolutions) => {
-    const [data, characters] = resolutions;
+    let [data, characters] = resolutions;
+    // Strip UTF-8 BOM if present (some list files begin with \ufeff)
+    if (data.charCodeAt(0) === 0xFEFF) data = data.slice(1);
     const result = [];
     data.split('\n').forEach((line) => {
       const values = line.split('\t');

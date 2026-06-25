@@ -373,7 +373,7 @@ class Handwriting {
     handler && handler();
   }
   _emplace(args) {
-    [path, rotate, source, target] = args;
+    let [path, rotate, source, target] = args;
     const child = pathToShape(path, this._size, kStrokeColor);
     const endpoint = animate(child, this._size, rotate, source, target);
     this._layers[Layer.STROKE].children.pop();

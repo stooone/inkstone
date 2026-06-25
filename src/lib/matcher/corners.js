@@ -112,7 +112,7 @@ const truncate = (median, truncation) => {
   const n = 64;
   const length = pathLength(median);
   const index = Math.round(n * Math.min(truncation / length, 0.25));
-  return refined = refine(median, n).slice(index, n - index);
+  return refine(median, n).slice(index, n - index);
 }
 
 export {findCorners};

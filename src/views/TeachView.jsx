@@ -79,7 +79,7 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
 
   const [helpers, setHelpers] = useState({
     pinyin: '', definition: '', deck: '', error: null, options: null,
-    grading: false, complete: false, word: '',
+    grading: false, complete: false, word: '', loadError: null,
   });
 
   const setH = useCallback((patch) => setHelpers(prev => ({ ...prev, ...patch })), []);
@@ -253,9 +253,9 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       pinyin: data.pinyin,
       word: data.word,
       error: null, options: null,
-      grading: false, complete: false,
+      grading: false, complete: false, loadError: null,
     });
-          updateItem(c, data);
+    updateItem(c, data);
   }, [updateItem]);
 
   // ------------------------------------------------------------------
@@ -288,7 +288,7 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
   useEffect(() => {
     if (!card) return;
     hwRef.current?.clear();
-    setH({ deck: card.deck, grading: false, complete: false });
+    setH({ deck: card.deck, grading: false, complete: false, loadError: null });
 
     if (card.deck === 'errors') {
       setH({ error: card.data.error, options: card.data.options });
@@ -298,12 +298,24 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
     setH({ error: null, options: null });
 
     const charset = Settings.get('character_set');
+    let cancelled = false;
     setTimeout(() => {
-      readItem(card.data, charset).then(onItemData).catch((err) => {
-        console.error('Card read error:', err);
-        setTimeout(Timing.shuffle, 200);
+      if (cancelled) return;
+      readItem(card.data, charset).then((data) => {
+        if (cancelled) return;
+        onItemData(data);
+      }).catch((err) => {
+        if (cancelled) return;
+        console.error('Card read error:', err.stack || err);
+        // Show an in-place error instead of reshuffling (reshuffling causes an
+        // infinite re-render loop: new card → load error → reshuffle → repeat).
+        setH({
+          loadError: `Failed to load "${card.data.word}": ${err.message || err}`,
+          deck: card.deck,
+        });
       });
     }, 20);
+    return () => { cancelled = true; };
   }, [card]);
 
   // ------------------------------------------------------------------
@@ -391,6 +403,7 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
   // Render
   // ------------------------------------------------------------------
   const isError = helpers.error !== null;
+  const isLoadError = helpers.loadError !== null && !isError;
 
   return (
     <div id="view-teach">
@@ -404,6 +417,13 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       <div class="teach-canvas-wrap">
         {isError ? (
           <ErrorCard card={card} onNavigate={navigate} />
+        ) : isLoadError ? (
+          <div class="load-error-card">
+            <p>⚠️ {helpers.loadError}</p>
+            <button id="btn-skip-card" class="error-option-btn" onClick={() => Timing.shuffle()}>
+              Skip to next card
+            </button>
+          </div>
         ) : (
           <div
             class="teach-canvas-inner"
