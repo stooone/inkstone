@@ -350,6 +350,22 @@ body { margin: 0; overflow: hidden; height: 100dvh; }
   box-shadow: var(--shadow);
 }
 
+/* The actual <canvas> element is sized square by JS; give it the paper
+   background here so ink strokes are always visible regardless of OS theme */
+#teach-canvas canvas {
+  background: #faf9f7;
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  #teach-canvas canvas {
+    background: #f5f2ed;
+  }
+  .teach-canvas-inner {
+    box-shadow: 0 2px 20px rgba(0,0,0,.5);
+  }
+}
+
 .teach-controls {
   display: flex;
   justify-content: space-around;
