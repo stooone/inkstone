@@ -1,13 +1,12 @@
 import { h } from 'preact';
-import { useState, useEffect, useCallback } from 'preact/hooks';
+import { useCallback } from 'preact/hooks';
 import { Settings } from '/client/model/settings';
+import { useReactive } from '../hooks/useReactive';
 
 function Toggle({ id, label, settingKey }) {
-  const [value, setValue] = useState(() => Settings.get(settingKey));
+  const value = useReactive(() => Settings.get(settingKey), [settingKey]);
   const onChange = useCallback((e) => {
-    const v = e.target.checked;
-    Settings.set(settingKey, v);
-    setValue(v);
+    Settings.set(settingKey, e.target.checked);
   }, [settingKey]);
 
   return (
@@ -22,12 +21,11 @@ function Toggle({ id, label, settingKey }) {
 }
 
 function NumberInput({ id, label, settingKey, min, max }) {
-  const [value, setValue] = useState(() => Settings.get(settingKey));
+  const value = useReactive(() => Settings.get(settingKey), [settingKey]);
   const onChange = useCallback((e) => {
     const v = parseInt(e.target.value, 10);
     if (!isNaN(v)) {
       Settings.set(settingKey, v);
-      setValue(v);
     }
   }, [settingKey]);
 
@@ -48,10 +46,9 @@ function NumberInput({ id, label, settingKey, min, max }) {
 }
 
 function SelectInput({ id, label, settingKey, options }) {
-  const [value, setValue] = useState(() => Settings.get(settingKey));
+  const value = useReactive(() => Settings.get(settingKey), [settingKey]);
   const onChange = useCallback((e) => {
     Settings.set(settingKey, e.target.value);
-    setValue(e.target.value);
   }, [settingKey]);
 
   return (

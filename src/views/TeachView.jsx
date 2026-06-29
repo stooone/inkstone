@@ -400,6 +400,17 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
   }, [updateItem]);
 
   // ------------------------------------------------------------------
+  // Peek
+  // ------------------------------------------------------------------
+  const onPeek = useCallback(() => {
+    if (maybeAdvance()) return;
+    const task = itemRef.current.tasks[itemRef.current.index];
+    if (!task) return;
+    task.penalties += kMaxPenalties;
+    hwRef.current?.peek(task.strokes);
+  }, [maybeAdvance]);
+
+  // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
   const isError = helpers.error !== null;
@@ -427,9 +438,9 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
         ) : (
           <div
             class="teach-canvas-inner"
-            style={{ left: `${margin}%`, right: `${margin}%`, position: 'relative', width: `${canvasWidth}%`, margin: '0 auto' }}
+            style={{ width: `${canvasWidth}%` }}
           >
-            <div ref={canvasWrapRef} id="teach-canvas" style={{ width: '100%', paddingBottom: '100%', position: 'relative' }} />
+            <div ref={canvasWrapRef} id="teach-canvas" style={{ width: '100%', height: '100%', position: 'relative' }} />
 
             {helpers.grading && (
               <GradingOverlay onGrade={onRegrade} />
@@ -453,6 +464,7 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       <div class="teach-controls">
         <button id="ctrl-home"      class="teach-ctrl" title="Home"      onClick={() => navigate('index', 'back')}>⌂</button>
         <button id="ctrl-redo"      class="teach-ctrl" title="Redo"      onClick={onRedo}>↩</button>
+        <button id="ctrl-peek"      class="teach-ctrl" title="Peek"      onClick={onPeek}>👁</button>
         <button id="ctrl-blacklist" class="teach-ctrl" title="Blacklist" onClick={onBlacklist}>✕</button>
         <button id="ctrl-show"      class="teach-ctrl" title="Details"   onClick={onShow}>🔍</button>
       </div>

@@ -343,6 +343,28 @@ class Handwriting {
     container.cache(0, 0, this._size, this._size);
     layer.addChild(container);
   }
+  peek(paths) {
+    const layer = this._layers[Layer.HINT];
+    const container = new createjs.Container();
+    for (let path of paths) {
+      const child = pathToShape(
+          path, this._size, kRevealColor, true /* uncached */);
+      container.addChild(child);
+    }
+    container.cache(0, 0, this._size, this._size);
+    layer.addChild(container);
+
+    this._running_animations += 1;
+    createjs.Tween.get(container)
+      .wait(1000)
+      .to({alpha: 0}, 500)
+      .call(() => {
+        this._pending_animations += 1;
+        if (container.parent) {
+          container.parent.removeChild(container);
+        }
+      });
+  }
   undo() {
     this._layers[Layer.STROKE].children.pop();
     this._reset();
