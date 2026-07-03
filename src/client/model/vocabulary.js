@@ -134,6 +134,10 @@ class Vocabulary {
       return entry[kIndices.last] < last && entry[kIndices.next] < next;
     });
   }
+  static getAllItems() {
+    vocabulary.depend();
+    return cache.active.map(materialize);
+  }
   static getNewItems() {
     return new Cursor((entry) => entry[kIndices.attempts] === 0);
   }

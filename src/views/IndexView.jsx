@@ -40,6 +40,14 @@ export default function IndexView({ navigate }) {
           <span class="icon">?</span>
           Help
         </button>
+        <button
+          id="btn-nav-stats"
+          class="btn-option"
+          onClick={() => navigate('stats')}
+        >
+          <span class="icon">📊</span>
+          Stats
+        </button>
       </div>
     </div>
   );

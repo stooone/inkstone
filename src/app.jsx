@@ -7,6 +7,7 @@ import TeachView from './views/TeachView';
 import SettingsView from './views/SettingsView';
 import ListsView from './views/ListsView';
 import HelpView from './views/HelpView';
+import StatisticsView from './views/StatisticsView';
 import AnswerPanel from './views/AnswerPanel';
 import Popup from './views/Popup';
 
@@ -30,7 +31,7 @@ function formatRemainder(r) {
   return `${total} left`;
 }
 
-const VIEWS = ['index', 'teach', 'settings', 'lists', 'help'];
+const VIEWS = ['index', 'teach', 'settings', 'lists', 'help', 'stats'];
 
 export function App() {
   const [route, setRoute] = useState('index');
@@ -84,6 +85,7 @@ export function App() {
     settings: 'Settings',
     lists: 'Lists',
     help: 'Help',
+    stats: 'Statistics',
   }[route] || 'Inkstone';
 
   const showBack = route !== 'index' && route !== 'teach';
@@ -134,6 +136,7 @@ export function App() {
         {route === 'settings' && <SettingsView />}
         {route === 'lists'    && <ListsView />}
         {route === 'help'     && <HelpView />}
+        {route === 'stats'    && <StatisticsView />}
       </div>
 
       {answerChar && (

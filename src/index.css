@@ -847,3 +847,114 @@ html, body {
   transform: scale(0.97);
 }
 
+/* ── Statistics View ── */
+.stats-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 8px 12px 40px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  padding: 14px 12px;
+  text-align: center;
+  transition: background .1s;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  margin-top: 4px;
+}
+
+.stats-overall-progress {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.stat-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.stat-progress {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stat-progress-bar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width .3s ease;
+}
+
+.list-stat-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 2px;
+}
+
+.list-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.list-stat-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.list-stat-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.list-stat-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.stat-number {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
