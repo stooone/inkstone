@@ -127,6 +127,15 @@ export default function StatisticsView() {
           </div>
         </>
       )}
+
+      {/* Legend / Explanations */}
+      <div class="section-divider">About These Stats</div>
+      <div class="stats-legend">
+        <p><strong>Learned</strong> — characters you have practiced at least once.</p>
+        <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
+        <p><strong>Failed</strong> — characters you have gotten wrong at least once.</p>
+        <p><strong>Success Rate</strong> — the percentage of correct answers across all your reviews.</p>
+      </div>
     </div>
   );
 }
