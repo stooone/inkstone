@@ -102,9 +102,20 @@ export const shuffle = () => {
   if (!counts || !left) return;
 
   if (left.adds + left.reviews > 0) {
-    const index = Math.random() * (left.adds + left.reviews);
-    const deck = index < left.adds ? 'adds' : 'reviews';
-    next_card.set(draw(deck, counts.ts));
+    // New cards are only introduced after 80% of reviews are done,
+    // so falling behind doesn't pile on even more new cards.
+    const reviewsDone = counts.reviews;
+    const reviewsTotal = reviewsDone + left.reviews;
+    const reviewThreshold = 0.8 * reviewsTotal;
+    const canAddNew = reviewsDone >= reviewThreshold || left.reviews === 0;
+
+    if (canAddNew) {
+      const index = Math.random() * (left.adds + left.reviews);
+      const deck = index < left.adds ? 'adds' : 'reviews';
+      next_card.set(draw(deck, counts.ts));
+    } else {
+      next_card.set(draw('reviews', counts.ts));
+    }
   } else if (left.extras > 0) {
     const card = draw('extras', counts.ts);
     card.deck = card.data.attempts === 0 ? 'adds' : 'reviews';
