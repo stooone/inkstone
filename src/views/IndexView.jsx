@@ -5,7 +5,7 @@ export default function IndexView({ navigate }) {
     <div id="view-index">
       <div class="index-logo">石</div>
       <div class="index-title">Inkstone</div>
-      <div class="index-version">v2.0.0-pwa</div>
+      <div class="index-version">Beta</div>
 
       <button
         id="btn-write"
