@@ -65,6 +65,13 @@ export default function HelpView() {
         Character data from <a href="https://github.com/skishore/makemeahanzi" target="_blank" rel="noopener">Make Me a Hanzi</a>.
         PWA migration and further development by <a href="https://github.com/stooone/inkstone" target="_blank" rel="noopener">Juhász Péter Károly</a>.
       </p>
+
+      <h2>Support</h2>
+      <p>
+        If you find Inkstone useful, you can support hosting and development costs via{' '}
+        <a href="https://paypal.me/inkstoneapp" target="_blank" rel="noopener">PayPal</a>.
+        Every contribution helps keep the app running and improving. Thank you!
+      </p>
     </div>
   );
 }
