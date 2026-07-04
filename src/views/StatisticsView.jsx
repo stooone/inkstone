@@ -63,6 +63,25 @@ function ProgressBar({ value, max, color }) {
   );
 }
 
+function SegmentedProgressBar({ mastered, learned, total }) {
+  const masteredPct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+  const learnedPct = total > 0 ? Math.round(((learned - mastered) / total) * 100) : 0;
+  const remainingPct = total > 0 ? 100 - masteredPct - learnedPct : 100;
+  return (
+    <div class="stat-progress stat-progress-segmented">
+      {masteredPct > 0 && (
+        <div class="stat-progress-bar stat-progress-mastered" style={{ width: `${masteredPct}%` }}></div>
+      )}
+      {learnedPct > 0 && (
+        <div class="stat-progress-bar stat-progress-learned" style={{ width: `${learnedPct}%` }}></div>
+      )}
+      {remainingPct > 0 && (
+        <div class="stat-progress-bar stat-progress-remaining" style={{ width: `${remainingPct}%` }}></div>
+      )}
+    </div>
+  );
+}
+
 export default function StatisticsView() {
   const stats = useReactive(computeStats, []);
 
@@ -85,7 +104,7 @@ export default function StatisticsView() {
             <span>Overall Progress</span>
             <span>{stats.learned} / {stats.total} ({Math.round((stats.learned / stats.total) * 100)}%)</span>
           </div>
-          <ProgressBar value={stats.learned} max={stats.total} color="var(--green)" />
+          <SegmentedProgressBar mastered={stats.mastered} learned={stats.learned} total={stats.total} />
         </div>
       )}
 
@@ -99,10 +118,11 @@ export default function StatisticsView() {
                 <span class="list-stat-name">{ls.name}</span>
                 <span class="list-stat-count">{ls.learned} / {ls.total}</span>
               </div>
-              <ProgressBar value={ls.learned} max={ls.total} color="var(--green)" />
+              <SegmentedProgressBar mastered={ls.mastered} learned={ls.learned} total={ls.total} />
               <div class="list-stat-detail">
                 <span>{ls.mastered} mastered</span>
-                <span>{ls.total - ls.learned} remaining</span>
+                <span>{ls.learned - ls.mastered} learning</span>
+                <span>{ls.total - ls.learned} new</span>
               </div>
             </div>
           ))}

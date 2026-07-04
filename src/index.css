@@ -923,6 +923,39 @@ html, body {
   transition: width .3s ease;
 }
 
+.stat-progress-segmented {
+  display: flex;
+  gap: 0;
+}
+
+.stat-progress-segmented .stat-progress-bar {
+  border-radius: 0;
+}
+
+.stat-progress-segmented .stat-progress-bar:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.stat-progress-segmented .stat-progress-bar:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.stat-progress-segmented .stat-progress-bar:only-child {
+  border-radius: 8px;
+}
+
+.stat-progress-mastered {
+  background: #1b5e20;
+}
+
+.stat-progress-learned {
+  background: #66bb6a;
+}
+
+.stat-progress-remaining {
+  background: var(--bg2);
+}
+
 .list-stat-item {
   background: var(--surface);
   border: 1px solid var(--border);
