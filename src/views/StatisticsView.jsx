@@ -11,8 +11,6 @@ function computeStats() {
   const total = allItems.length;
   const learned = allItems.filter(e => e.attempts > 0);
   const new_ = allItems.filter(e => e.attempts === 0);
-  const failed = allItems.filter(e => e.failed);
-
   // Mastered: at least 5 attempts and success rate >= 80%
   const mastered = learned.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8);
 
@@ -39,7 +37,6 @@ function computeStats() {
     total,
     learned: learned.length,
     newCount: new_.length,
-    failed: failed.length,
     mastered: mastered.length,
     overallRate,
     totalAttempts,
@@ -78,7 +75,6 @@ export default function StatisticsView() {
         <StatCard label="Learned" value={stats.learned} color="var(--green)" />
         <StatCard label="Mastered" value={stats.mastered} color="var(--purple)" />
         <StatCard label="New" value={stats.newCount} color="var(--ink-muted)" />
-        <StatCard label="Failed" value={stats.failed} color="var(--red)" />
         <StatCard label="Success Rate" value={`${stats.overallRate}%`} color="var(--orange)" />
       </div>
 
@@ -133,7 +129,6 @@ export default function StatisticsView() {
       <div class="stats-legend">
         <p><strong>Learned</strong> — characters you have practiced at least once.</p>
         <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
-        <p><strong>Failed</strong> — characters you have gotten wrong at least once.</p>
         <p><strong>Success Rate</strong> — the percentage of correct answers across all your reviews.</p>
       </div>
     </div>
