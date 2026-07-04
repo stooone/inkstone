@@ -2,6 +2,7 @@ import { PersistentDict } from '/client/model/persistence';
 
 const kLists = {
   '100cr': {category: 'General', name: '100 Common Radicals'},
+  'manually': {category: 'General', name: 'Manually added'},
   'nhsk1': {category: 'Hanyu Shuiping Kaoshi', name: 'HSK Level 1'},
   'nhsk2': {category: 'Hanyu Shuiping Kaoshi', name: 'HSK Level 2'},
   'nhsk3': {category: 'Hanyu Shuiping Kaoshi', name: 'HSK Level 3'},

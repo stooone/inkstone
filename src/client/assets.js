@@ -39,7 +39,7 @@ const download = (filename, data) => {
 }
 
 const isImportedAsset = (asset) => {
-  return asset.startsWith('characters/') || asset.startsWith('lists/custom.');
+  return asset.startsWith('characters/') || asset.startsWith('lists/custom.') || asset.startsWith('lists/manually.');
 }
 
 // Input: a path to an asset
@@ -176,8 +176,13 @@ const readItem = (item, charset) => {
 
 // Input: the name of a list
 const readList = (list) => {
+  const assetPath = `lists/${list}.list`;
+  // "manually" list is stored in localForage only (no static file)
+  const assetPromise = (list === 'manually')
+    ? readAsset(assetPath).catch(() => '')
+    : readAsset(assetPath);
   return Promise.all([
-    readAsset(`lists/${list}.list`),
+    assetPromise,
     kCharacters,
   ]).then((resolutions) => {
     let [data, characters] = resolutions;
@@ -209,6 +214,10 @@ const writeAsset = async (path, data) => {
 // Deletes the given list and resolves when it is removed.
 const removeList = (list) => {
   // Imported custom lists use the key format "custom.<timestamp>"
+  // "manually" is a special built-in list that cannot be removed
+  if (list === 'manually') {
+    return Promise.reject(`Cannot remove the built-in "manually" list.`);
+  }
   if (list.startsWith('custom.')) {
     const path = `lists/${list}.list`;
     return localforage.removeItem('asset.' + path);
@@ -237,12 +246,19 @@ const writeList = (list, items) => {
       }
       const fields = kListColumns.map((column) => item[column]);
       const missing = kListColumns.filter((column) => !item[column]);
-      if (missing.length > 0) {
+      // Require pinyin and definition; simplified or traditional (or both) must be present
+      const requiredMissing = missing.filter((c) => c !== 'simplified' && c !== 'traditional');
+      if (requiredMissing.length > 0) {
         console.warn(`Skipping malformed row: ${fields.join(', ')}. ` +
-                     `Missing data for: ${missing.join(', ')}.`);
+                     `Missing data for: ${requiredMissing.join(', ')}.`);
         continue;
       }
-      const words = item.simplified + item.traditional;
+      if (!item.simplified && !item.traditional) {
+        console.warn(`Skipping row with no characters: ${fields.join(', ')}.`);
+        continue;
+      }
+      // Validate only the characters that are actually present
+      const words = (item.simplified || '') + (item.traditional || '');
       if (!words.split('').every((x) => characters[x])) {
         Array.from(words).forEach(
             (x) => { if (!characters[x]) result.missing[x] = true; });

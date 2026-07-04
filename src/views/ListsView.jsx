@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'preact/hooks';
 import { Lists } from '/client/model/lists';
 import { Settings } from '/client/model/settings';
 import { Vocabulary } from '/client/model/vocabulary';
-import { readList, removeList } from '/client/assets';
+import { readList, removeList, writeList } from '/client/assets';
 
 // Sort key that pads trailing numbers so "HSK Level 2" < "HSK Level 10"
 const comparisonKey = (name) => {
@@ -27,7 +27,7 @@ const toListGroups = (allLists) => {
   }));
 };
 
-function ListToggle({ id, label, listKey, isCustom, onDelete }) {
+function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
   const [enabled, setEnabled] = useState(() => Lists.isListEnabled(listKey));
   const [loading, setLoading] = useState(false);
 
@@ -71,11 +71,23 @@ function ListToggle({ id, label, listKey, isCustom, onDelete }) {
     }
   }, [listKey, label, enabled, onDelete]);
 
+  const handleAddClick = useCallback(() => {
+    if (onAddWord) onAddWord();
+  }, [onAddWord]);
+
   return (
     <div class="list-item">
       <span>{label}</span>
       <div class="list-item-actions">
-        {isCustom && (
+        {listKey === 'manually' && (
+          <button
+            class="add-btn"
+            onClick={handleAddClick}
+            disabled={loading}
+            title="Add words"
+          >+</button>
+        )}
+        {isCustom && listKey !== 'manually' && (
           <button
             class="remove-btn"
             onClick={handleDelete}
@@ -146,11 +158,126 @@ function BlacklistView({ onBack }) {
 }
 
 const kStaticLists = Object.freeze([
-  '100cr', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
+  '100cr', 'manually', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
 ]);
 
+function AddWordView({ listKey, onBack }) {
+  const [simplified, setSimplified] = useState('');
+  const [traditional, setTraditional] = useState('');
+  const [pinyin, setPinyin] = useState('');
+  const [definition, setDefinition] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const addWord = useCallback(async () => {
+    setError('');
+    if (!simplified.trim() && !traditional.trim()) {
+      setError('Please enter at least a simplified or traditional character.');
+      return;
+    }
+    setSaving(true);
+    try {
+      // Read existing list data
+      const existingRows = await readList(listKey).catch(() => []);
+      const newRow = {
+        simplified: simplified.trim(),
+        traditional: traditional.trim() || simplified.trim(),
+        numbered: pinyin.trim(),
+        pinyin: pinyin.trim(),
+        definition: definition.trim(),
+      };
+      // Append new word
+      const allRows = [...existingRows, newRow];
+      await writeList(listKey, allRows);
+      // If list is enabled, add to vocabulary (skip if charset field is empty)
+      if (Lists.isListEnabled(listKey)) {
+        const charset = Settings.get('character_set');
+        const word = newRow[charset];
+        if (word) Vocabulary.addItem(word, listKey);
+      }
+      setSimplified('');
+      setTraditional('');
+      setPinyin('');
+      setDefinition('');
+    } catch(e) {
+      setError('Failed to save: ' + (e?.message || e));
+    } finally {
+      setSaving(false);
+    }
+  }, [simplified, traditional, pinyin, definition, listKey]);
+
+  // Allow Enter key to submit
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addWord();
+    }
+  }, [addWord]);
+
+  return (
+    <div class="add-word-view">
+      <div class="add-word-header">
+        <button class="btn-back" onClick={onBack}>← Back</button>
+        <span class="add-word-title">Add Word</span>
+        <div class="flex-spacer"></div>
+      </div>
+      <div class="add-word-body">
+        {error && <div class="add-word-error">{error}</div>}
+        <div class="modal-field">
+          <label>Simplified</label>
+          <input
+            type="text"
+            value={simplified}
+            onInput={(e) => setSimplified(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. 你好"
+            autofocus
+          />
+        </div>
+        <div class="modal-field">
+          <label>Traditional</label>
+          <input
+            type="text"
+            value={traditional}
+            onInput={(e) => setTraditional(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. 你好"
+          />
+        </div>
+        <div class="modal-field">
+          <label>Pinyin</label>
+          <input
+            type="text"
+            value={pinyin}
+            onInput={(e) => setPinyin(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. nǐ hǎo"
+          />
+        </div>
+        <div class="modal-field">
+          <label>Definition</label>
+          <input
+            type="text"
+            value={definition}
+            onInput={(e) => setDefinition(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. hello"
+          />
+        </div>
+        <button
+          class="add-word-submit"
+          onClick={addWord}
+          disabled={saving || (!simplified.trim() && !traditional.trim())}
+        >
+          {saving ? 'Saving…' : 'Add Word'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ListsView() {
-  const [subview, setSubview] = useState(null); // null | 'blacklist'
+  const [subview, setSubview] = useState(null); // null | 'blacklist' | 'addword'
   const [allLists, setAllLists] = useState(() => Lists.getAllLists());
   const groups = toListGroups(allLists);
 
@@ -194,6 +321,9 @@ export default function ListsView() {
   if (subview === 'blacklist') {
     return <BlacklistView onBack={() => setSubview(null)} />;
   }
+  if (subview === 'addword') {
+    return <AddWordView listKey="manually" onBack={() => setSubview(null)} />;
+  }
 
   return (
     <div class="lists-list">
@@ -218,6 +348,7 @@ export default function ListsView() {
                 listKey={list.id}
                 isCustom={!kStaticLists.includes(list.id)}
                 onDelete={refreshLists}
+                onAddWord={list.id === 'manually' ? () => setSubview('addword') : null}
               />
           ))}
         </div>
