@@ -147,6 +147,73 @@ export default function SettingsView() {
     }
   }, []);
 
+  const doCheckUpdate = useCallback(async () => {
+    if (!('serviceWorker' in navigator)) {
+      alert('Service workers are not supported in this browser / context.');
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg || !reg.active) {
+        alert('No active service worker found. App may not be installed as a PWA.');
+        return;
+      }
+      // Listen for a new waiting worker
+      const newWorkerPromise = new Promise((resolve) => {
+        if (reg.waiting) {
+          resolve(reg.waiting);
+          return;
+        }
+        reg.addEventListener('updatefound', () => {
+          const installing = reg.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', () => {
+            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+              resolve(installing);
+            }
+          });
+        });
+      });
+      await reg.update();
+      // Wait up to 5 seconds for the new worker
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000)
+      );
+      try {
+        const newWorker = await Promise.race([newWorkerPromise, timeout]);
+        if (!newWorker) {
+          alert('App is already up to date.');
+          return;
+        }
+      } catch {
+        alert('App is already up to date.');
+        return;
+      }
+      if (!confirm('A new version is available. Reload to update?')) return;
+      // Tell the waiting worker to skip waiting and activate immediately
+      const w = reg.waiting;
+      if (w) {
+        w.postMessage({ type: 'SKIP_WAITING' });
+        // Reload after the new worker takes over
+        let reloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (reloading) return;
+          reloading = true;
+          window.location.reload();
+        });
+        // Fallback reload in case controllerchange doesn't fire
+        setTimeout(() => {
+          if (!reloading) {
+            reloading = true;
+            window.location.reload();
+          }
+        }, 2000);
+      }
+    } catch(e) {
+      alert('Update check failed: ' + (e?.message || e));
+    }
+  }, []);
+
   return (
     <div class="settings-list">
       {/* Backups */}
@@ -176,6 +243,12 @@ export default function SettingsView() {
       <NumberInput id="setting-dbl-tap"   label="Double-tap (ms)" settingKey="double_tap_speed" min={100} max={2000} />
       <Toggle      id="setting-reveal"    label="Reveal Order"    settingKey="reveal_order" />
       <Toggle      id="setting-snap"      label="Snap Strokes"    settingKey="snap_strokes" />
+
+      {/* Updates */}
+      <div class="section-divider">Updates</div>
+      <div class="list-item clickable" id="btn-check-update" onClick={doCheckUpdate}>
+        Check for updates
+      </div>
 
       {/* Danger */}
       <div class="section-divider">Danger Zone</div>
