@@ -30,15 +30,50 @@ const toListGroups = (allLists) => {
 function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
   const [enabled, setEnabled] = useState(() => Lists.isListEnabled(listKey));
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [rows, setRows] = useState(null); // null = not loaded, [] = loaded
+  const [rowLoading, setRowLoading] = useState(false);
+  const [deletingIdx, setDeletingIdx] = useState(null);
+
+  // Load row data when expanded or when count is needed
+  const loadRows = useCallback(async () => {
+    if (rows !== null) return rows;
+    setRowLoading(true);
+    try {
+      const data = await readList(listKey);
+      setRows(data);
+      setRowLoading(false);
+      return data;
+    } catch(e) {
+      setRows([]);
+      setRowLoading(false);
+      return [];
+    }
+  }, [listKey, rows]);
+
+  // Preload count on mount
+  const [count, setCount] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    readList(listKey).then((data) => {
+      if (!cancelled) setCount(data.length);
+    }).catch(() => {
+      if (!cancelled) setCount(0);
+    });
+    return () => { cancelled = true; };
+  }, [listKey]);
 
   const onChange = useCallback(async (e) => {
     const on = e.target.checked;
     setLoading(true);
     try {
       if (on) {
-        const rows = await readList(listKey);
+        const data = await readList(listKey);
         const charset = Settings.get('character_set');
-        rows.forEach((row) => Vocabulary.addItem(row[charset], listKey));
+        data.forEach((row) => {
+          const word = row[charset];
+          if (word) Vocabulary.addItem(word, listKey);
+        });
         Lists.enable(listKey);
       } else {
         Vocabulary.dropList(listKey);
@@ -75,37 +110,113 @@ function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
     if (onAddWord) onAddWord();
   }, [onAddWord]);
 
+  const toggleExpand = useCallback(async () => {
+    if (!expanded) {
+      await loadRows();
+    }
+    setExpanded(!expanded);
+  }, [expanded, loadRows]);
+
+  const deleteRow = useCallback(async (idx) => {
+    if (listKey !== 'manually') return;
+    const currentRows = rows || (await loadRows());
+    const rowToDelete = currentRows[idx];
+    if (!rowToDelete) return;
+    setDeletingIdx(idx);
+    try {
+      // Remove from vocabulary if enabled
+      if (enabled) {
+        const charset = Settings.get('character_set');
+        const word = rowToDelete[charset];
+        if (word) {
+          // Remove this list from the word's lists; if no lists remain, word is gone
+          Vocabulary.dropList(listKey);
+          // Re-add all other rows
+          const remaining = currentRows.filter((_, i) => i !== idx);
+          remaining.forEach((row) => {
+            const w = row[charset];
+            if (w) Vocabulary.addItem(w, listKey);
+          });
+        }
+      }
+      // Persist updated list
+      const updated = currentRows.filter((_, i) => i !== idx);
+      await writeList(listKey, updated);
+      setRows(updated);
+      setCount(updated.length);
+    } catch(e) {
+      alert('Delete failed: ' + (e?.message || e));
+    } finally {
+      setDeletingIdx(null);
+    }
+  }, [listKey, rows, enabled, loadRows]);
+
+  const canExpand = listKey === 'manually';
+  const countStr = count !== null ? ` (${count})` : '';
+
   return (
-    <div class="list-item">
-      <span>{label}</span>
-      <div class="list-item-actions">
-        {listKey === 'manually' && (
-          <button
-            class="add-btn"
-            onClick={handleAddClick}
-            disabled={loading}
-            title="Add words"
-          >+</button>
-        )}
-        {isCustom && listKey !== 'manually' && (
-          <button
-            class="remove-btn"
-            onClick={handleDelete}
-            disabled={loading}
-            title="Delete list"
-          >✕</button>
-        )}
-        <label class="toggle">
-          <input
-            id={`toggle-list-${id}`}
-            type="checkbox"
-            checked={enabled}
-            disabled={loading}
-            onChange={onChange}
-          />
-          <span class="toggle-thumb" style={loading ? 'opacity:.5' : ''}></span>
-        </label>
+    <div class="list-toggle-group">
+      <div class={`list-item${canExpand ? ' clickable' : ''}`} onClick={canExpand ? toggleExpand : undefined}>
+        <span>{label}{countStr}</span>
+        <div class="list-item-actions">
+          {listKey === 'manually' && (
+            <button
+              class="add-btn"
+              onClick={(e) => { e.stopPropagation(); handleAddClick(); }}
+              disabled={loading}
+              title="Add words"
+            >+</button>
+          )}
+          {isCustom && listKey !== 'manually' && (
+            <button
+              class="remove-btn"
+              onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+              disabled={loading}
+              title="Delete list"
+            >🗑</button>
+          )}
+          <label class="toggle" onClick={(e) => e.stopPropagation()}>
+            <input
+              id={`toggle-list-${id}`}
+              type="checkbox"
+              checked={enabled}
+              disabled={loading}
+              onChange={onChange}
+            />
+            <span class="toggle-thumb" style={loading ? 'opacity:.5' : ''}></span>
+          </label>
+        </div>
       </div>
+      {canExpand && expanded && (
+        <div class="list-words-expanded">
+          {rowLoading ? (
+            <div class="list-word-row muted">Loading…</div>
+          ) : rows && rows.length > 0 ? (
+            rows.map((row, idx) => {
+              const charset = Settings.get('character_set');
+              const displayWord = row[charset] || row.simplified || row.traditional || '?';
+              return (
+                <div class="list-word-row" key={idx}>
+                  <div class="list-word-info">
+                    <span class="list-word-char">{displayWord}</span>
+                    <span class="list-word-meta">{row.pinyin} — {row.definition}</span>
+                  </div>
+                  <button
+                    class="trash-btn"
+                    onClick={() => deleteRow(idx)}
+                    disabled={deletingIdx === idx}
+                    title="Delete word"
+                  >
+                    {deletingIdx === idx ? '…' : '🗑'}
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <div class="list-word-row muted">No words added yet. Tap + to add.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -177,7 +288,6 @@ function AddWordView({ listKey, onBack }) {
     }
     setSaving(true);
     try {
-      // Read existing list data
       const existingRows = await readList(listKey).catch(() => []);
       const newRow = {
         simplified: simplified.trim(),
@@ -186,10 +296,8 @@ function AddWordView({ listKey, onBack }) {
         pinyin: pinyin.trim(),
         definition: definition.trim(),
       };
-      // Append new word
       const allRows = [...existingRows, newRow];
       await writeList(listKey, allRows);
-      // If list is enabled, add to vocabulary (skip if charset field is empty)
       if (Lists.isListEnabled(listKey)) {
         const charset = Settings.get('character_set');
         const word = newRow[charset];
@@ -206,7 +314,6 @@ function AddWordView({ listKey, onBack }) {
     }
   }, [simplified, traditional, pinyin, definition, listKey]);
 
-  // Allow Enter key to submit
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -285,8 +392,6 @@ export default function ListsView() {
     setAllLists(Lists.getAllLists());
   }, []);
 
-  // File import handler
-  // Must trigger file picker directly from click (before any prompt() consumes the user gesture)
   const doImport = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -296,7 +401,6 @@ export default function ListsView() {
       const file = e.target.files[0];
       document.body.removeChild(input);
       if (!file) return;
-      // Now prompt for metadata (no gesture needed for prompt())
       const category = prompt('Category name:');
       if (!category) return;
       const name = prompt('List name:');
@@ -305,7 +409,6 @@ export default function ListsView() {
         const text = await file.text();
         const rows = JSON.parse(text);
         const id = `custom.${Date.now()}`;
-        // Persist the list data to assets store via IDB
         const { writeList } = await import('/client/assets');
         await writeList(id, rows);
         Lists.addList(id, { category, name });
@@ -322,7 +425,10 @@ export default function ListsView() {
     return <BlacklistView onBack={() => setSubview(null)} />;
   }
   if (subview === 'addword') {
-    return <AddWordView listKey="manually" onBack={() => setSubview(null)} />;
+    return <AddWordView listKey="manually" onBack={() => {
+      setSubview(null);
+      refreshLists();
+    }} />;
   }
 
   return (

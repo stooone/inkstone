@@ -33,7 +33,10 @@ class Lists {
     Lists.setAllLists(all);
   }
   static getAllLists() {
-    return lists.get('lists') || Object.assign({}, kLists);
+    const stored = lists.get('lists');
+    if (!stored) return Object.assign({}, kLists);
+    // Merge stored lists with kLists defaults so new built-in entries always appear
+    return Object.assign({}, kLists, stored);
   }
   static getEnabledLists() {
     return getMatchingLists(Lists.isListEnabled);
