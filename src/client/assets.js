@@ -39,7 +39,7 @@ const download = (filename, data) => {
 }
 
 const isImportedAsset = (asset) => {
-  return asset.startsWith('characters/') || asset.startsWith('lists/s/');
+  return asset.startsWith('characters/') || asset.startsWith('lists/custom.');
 }
 
 // Input: a path to an asset
@@ -208,10 +208,13 @@ const writeAsset = async (path, data) => {
 
 // Deletes the given list and resolves when it is removed.
 const removeList = (list) => {
-  if (!isImportedAsset(`lists/s/${list}.list`)) {
-    return Promise.reject(`Tried to remove static asset: ${list}`);
+  // Imported custom lists use the key format "custom.<timestamp>"
+  if (list.startsWith('custom.')) {
+    const path = `lists/${list}.list`;
+    return localforage.removeItem('asset.' + path);
   }
-  return localforage.removeItem(`asset.lists/s/${list}.list`);
+  // Static lists cannot be removed
+  return Promise.reject(`Tried to remove static asset: ${list}`);
 }
 
 // Input: a character Object
@@ -227,6 +230,11 @@ const writeList = (list, items) => {
     const result = {count: 0, missing: {}};
     const rows = [];
     for (let item of items) {
+      // numbered is optional; derive from pinyin (tone-marked → numbered) when missing
+      if (!item.numbered && item.pinyin) {
+        // Use pinyin value as-is for numbered; the pinyin field holds the real tone info
+        item.numbered = item.pinyin;
+      }
       const fields = kListColumns.map((column) => item[column]);
       const missing = kListColumns.filter((column) => !item[column]);
       if (missing.length > 0) {

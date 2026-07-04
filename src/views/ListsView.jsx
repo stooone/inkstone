@@ -122,17 +122,21 @@ export default function ListsView() {
   const groups = toListGroups(allLists);
 
   // File import handler
+  // Must trigger file picker directly from click (before any prompt() consumes the user gesture)
   const doImport = useCallback(() => {
-    const category = prompt('Category name:');
-    if (!category) return;
-    const name = prompt('List name:');
-    if (!name) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json,.txt';
+    input.style.display = 'none';
     input.onchange = async (e) => {
       const file = e.target.files[0];
+      document.body.removeChild(input);
       if (!file) return;
+      // Now prompt for metadata (no gesture needed for prompt())
+      const category = prompt('Category name:');
+      if (!category) return;
+      const name = prompt('List name:');
+      if (!name) return;
       try {
         const text = await file.text();
         const rows = JSON.parse(text);
@@ -143,9 +147,10 @@ export default function ListsView() {
         Lists.addList(id, { category, name });
         setAllLists(Lists.getAllLists());
       } catch(err) {
-        alert('Import failed: ' + err.message);
+        alert('Import failed: ' + (err?.message || err));
       }
     };
+    document.body.appendChild(input);
     input.click();
   }, []);
 

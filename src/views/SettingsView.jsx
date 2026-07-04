@@ -113,8 +113,10 @@ export default function SettingsView() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json';
+    input.style.display = 'none';
     input.onchange = async (e) => {
       const file = e.target.files[0];
+      document.body.removeChild(input);
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async (ev) => {
@@ -132,6 +134,7 @@ export default function SettingsView() {
       };
       reader.readAsText(file);
     };
+    document.body.appendChild(input);
     input.click();
   }, []);
 
