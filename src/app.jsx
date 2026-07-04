@@ -1,5 +1,5 @@
 import { h, Fragment } from 'preact';
-import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import './index.css';
 
 import IndexView from './views/IndexView';
@@ -13,17 +13,6 @@ import Popup from './views/Popup';
 
 import { Timing } from '/client/model/timing';
 import { useReactive } from './hooks/useReactive';
-
-// Format seconds as HH:MM or MM:SS
-function formatTime(secs) {
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  if (h > 0) {
-    return `${h}:${String(m).padStart(2,'0')}`;
-  }
-  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
 
 function formatRemainder(r) {
   if (!r) return '…';
@@ -42,7 +31,6 @@ export function App() {
   const [needDownload, setNeedDownload] = useState(false);
   const [checkingAssets, setCheckingAssets] = useState(true);
 
-  const timeLeft   = useReactive(() => Timing.getTimeLeft(), []);
   const remainder  = useReactive(() => Timing.getRemainder(), []);
 
   // Hash-based answer panel
@@ -108,9 +96,6 @@ export function App() {
     <>
       <header class="app-header">
         <div class="header-left">
-          {route === 'index' && (
-            <span class="header-timer">{timeLeft ? formatTime(timeLeft) : ''}</span>
-          )}
           {showBack && (
             <button class="btn-back" onClick={goBack} id="btn-nav-back">
               ← Done

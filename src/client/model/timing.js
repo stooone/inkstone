@@ -5,7 +5,11 @@ import { Vocabulary } from '/client/model/vocabulary';
 import { assert } from '/lib/base';
 import { Tracker, ReactiveVar, Meteor } from '/src/store/meteor-mock';
 
-const kSessionDuration = 12 * 60 * 60;
+const getTodayMidnight = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return Math.floor(d.getTime() / 1000);
+};
 
 const timing = new PersistentVar('timing');
 
@@ -33,13 +37,14 @@ const time_left = new ReactiveVar();
 const tick = () => {
   const now = Date.timestamp();
   const counts = timing.get() || {ts: -Infinity};
-  const wait = counts.ts + kSessionDuration - now;
-  if (wait > 0) {
-    time_left.set(wait);
-  } else {
+  const todayMidnight = getTodayMidnight();
+
+  if (counts.ts < todayMidnight) {
     timing.set(newCounts(now));
-    time_left.set(kSessionDuration);
   }
+
+  const nextMidnight = todayMidnight + 86400;
+  time_left.set(nextMidnight - now);
 }
 
 // Start the timer tick
@@ -83,7 +88,10 @@ const draw = (deck, ts) => {
 const getters = {
   adds:     (ts) => Vocabulary.getNewItems(),
   extras:   (ts) => Vocabulary.getExtraItems(ts),
-  failures: (ts) => Vocabulary.getFailuresInRange(ts, ts + kSessionDuration),
+  failures: (ts) => {
+    const todayMidnight = getTodayMidnight();
+    return Vocabulary.getFailuresInRange(todayMidnight, todayMidnight + 86400);
+  },
   reviews:  (ts) => Vocabulary.getItemsDueBy(ts, ts),
 };
 
