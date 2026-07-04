@@ -260,6 +260,12 @@ html, body {
 
 .list-item.danger { color: var(--red); }
 
+.list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Toggle switch */
 .toggle-wrap {
   display: flex; align-items: center; gap: 8px;

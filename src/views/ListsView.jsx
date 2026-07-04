@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'preact/hooks';
 import { Lists } from '/client/model/lists';
 import { Settings } from '/client/model/settings';
 import { Vocabulary } from '/client/model/vocabulary';
-import { readList } from '/client/assets';
+import { readList, removeList } from '/client/assets';
 
 // Sort key that pads trailing numbers so "HSK Level 2" < "HSK Level 10"
 const comparisonKey = (name) => {
@@ -27,7 +27,7 @@ const toListGroups = (allLists) => {
   }));
 };
 
-function ListToggle({ id, label, listKey }) {
+function ListToggle({ id, label, listKey, isCustom, onDelete }) {
   const [enabled, setEnabled] = useState(() => Lists.isListEnabled(listKey));
   const [loading, setLoading] = useState(false);
 
@@ -52,19 +52,48 @@ function ListToggle({ id, label, listKey }) {
     }
   }, [listKey]);
 
+  const handleDelete = useCallback(async () => {
+    if (!confirm(`Delete list "${label}"? This cannot be undone.`)) return;
+    setLoading(true);
+    try {
+      if (enabled) {
+        Vocabulary.dropList(listKey);
+        Lists.disable(listKey);
+      }
+      await removeList(listKey);
+      Lists.deleteList(listKey);
+      if (onDelete) onDelete();
+    } catch(e) {
+      console.error(e);
+      alert('Delete failed: ' + (e?.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }, [listKey, label, enabled, onDelete]);
+
   return (
     <div class="list-item">
       <span>{label}</span>
-      <label class="toggle">
-        <input
-          id={`toggle-list-${id}`}
-          type="checkbox"
-          checked={enabled}
-          disabled={loading}
-          onChange={onChange}
-        />
-        <span class="toggle-thumb" style={loading ? 'opacity:.5' : ''}></span>
-      </label>
+      <div class="list-item-actions">
+        {isCustom && (
+          <button
+            class="remove-btn"
+            onClick={handleDelete}
+            disabled={loading}
+            title="Delete list"
+          >✕</button>
+        )}
+        <label class="toggle">
+          <input
+            id={`toggle-list-${id}`}
+            type="checkbox"
+            checked={enabled}
+            disabled={loading}
+            onChange={onChange}
+          />
+          <span class="toggle-thumb" style={loading ? 'opacity:.5' : ''}></span>
+        </label>
+      </div>
     </div>
   );
 }
@@ -116,10 +145,18 @@ function BlacklistView({ onBack }) {
   );
 }
 
+const kStaticLists = Object.freeze([
+  '100cr', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
+]);
+
 export default function ListsView() {
   const [subview, setSubview] = useState(null); // null | 'blacklist'
   const [allLists, setAllLists] = useState(() => Lists.getAllLists());
   const groups = toListGroups(allLists);
+
+  const refreshLists = useCallback(() => {
+    setAllLists(Lists.getAllLists());
+  }, []);
 
   // File import handler
   // Must trigger file picker directly from click (before any prompt() consumes the user gesture)
@@ -174,12 +211,14 @@ export default function ListsView() {
         <div key={group.label}>
           <div class="section-divider">{group.label}</div>
           {group.lists.map(list => (
-            <ListToggle
-              key={list.id}
-              id={list.id}
-              label={list.label}
-              listKey={list.id}
-            />
+              <ListToggle
+                key={list.id}
+                id={list.id}
+                label={list.label}
+                listKey={list.id}
+                isCustom={!kStaticLists.includes(list.id)}
+                onDelete={refreshLists}
+              />
           ))}
         </div>
       ))}
