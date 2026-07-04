@@ -238,8 +238,9 @@ const writeList = (list, items) => {
       const fields = kListColumns.map((column) => item[column]);
       const missing = kListColumns.filter((column) => !item[column]);
       if (missing.length > 0) {
-        return Promise.reject(`Malformatted row: ${fields.join(', ')}. ` +
-                              `Missing data for: ${missing.join(', ')}.`);
+        console.warn(`Skipping malformed row: ${fields.join(', ')}. ` +
+                     `Missing data for: ${missing.join(', ')}.`);
+        continue;
       }
       const words = item.simplified + item.traditional;
       if (!words.split('').every((x) => characters[x])) {
