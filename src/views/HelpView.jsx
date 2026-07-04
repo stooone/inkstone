@@ -63,7 +63,7 @@ export default function HelpView() {
       <p>
         Original Inkstone by <a href="https://github.com/skishore" target="_blank" rel="noopener">Shaunak Kishore</a>.
         Character data from <a href="https://github.com/skishore/makemeahanzi" target="_blank" rel="noopener">Make Me a Hanzi</a>.
-        PWA migration by Antigravity.
+        PWA migration and further development by <a href="https://github.com/stooone/inkstone" target="_blank" rel="noopener">Juhász Péter Károly</a>.
       </p>
     </div>
   );
