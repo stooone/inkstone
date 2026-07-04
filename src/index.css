@@ -177,6 +177,9 @@ html, body {
   color: var(--text-muted);
   margin-bottom: 40px;
 }
+.index-website {
+  margin-top: 16px;
+}
 
 .btn-write {
   display: block;

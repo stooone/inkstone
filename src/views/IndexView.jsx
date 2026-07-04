@@ -49,6 +49,7 @@ export default function IndexView({ navigate }) {
           Stats
         </button>
       </div>
+      <div class="index-version index-website">inkstoneapp.net</div>
     </div>
   );
 }
