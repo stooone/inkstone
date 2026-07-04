@@ -21,7 +21,7 @@ It has quite a few features:
 This project is a modern fork of the original [Inkstone app by Shaunak Kishore](https://github.com/skishore/inkstone). 
 
 **What changed:**
-The original project was built using the Meteor framework and wrapped as an Android app using Cordova. This modernized version was completely rewritten by **Peter Karoly "Stone" JUHASZ** (with the help of Antigravity) to ditch the heavy legacy dependencies (Meteor, Cordova, jQuery, Underscore) and port the application to a lightning-fast, lightweight **Vite + Preact** Progressive Web App (PWA).
+The original project was built using the Meteor framework and wrapped as an Android app using Cordova. This modernized version was completely rewritten by **Juhász Péter Károly** (with the help of Antigravity and DeepSeek) to ditch the heavy legacy dependencies (Meteor, Cordova, jQuery, Underscore) and port the application to a lightning-fast, lightweight **Vite + Preact** Progressive Web App (PWA).
 
 All user data and spaced-repetition progress is now stored securely in the browser using IndexedDB. The app can be installed directly to your phone's home screen from the browser and works fully offline.
 
