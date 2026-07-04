@@ -5,6 +5,42 @@ export default function HelpView() {
     <div class="help-body">
       <h1 style="font-size:24px;margin-top:0">Inkstone Help</h1>
 
+      <p style="background:var(--bg2);padding:12px 16px;border-radius:8px;color:var(--fg2);font-size:14px;line-height:1.6">
+        <strong>💾 Where your data lives:</strong> All your progress, settings, and
+        vocabulary are stored <em>only on this device</em>, inside your browser or
+        the Inkstone app. Your data is safe as long as you don't uninstall the app
+        or clear your browser's site data. On iOS, Safari may automatically free up
+        storage if your device runs low on space, which could delete app data.
+      </p>
+      <p style="background:var(--bg2);padding:12px 16px;border-radius:8px;color:var(--fg2);font-size:14px;line-height:1.6">
+        <strong>🔒 Preventing data loss:</strong> Use the{' '}
+        <strong>Backup</strong> feature in <strong>Settings</strong> regularly to
+        save a backup file. Store the file somewhere safe (e.g., cloud storage).
+        You can restore it later via <strong>Settings → Restore from a file</strong>{' '}
+        if you switch devices or lose your data.
+      </p>
+
+      <h2>Installing the App</h2>
+      <p>
+        Inkstone can be installed as a standalone app on your phone or computer.
+        This gives you a home screen icon, a full-screen experience without the
+        browser address bar, and offline access.
+      </p>
+      <p>
+        <strong>Android (Chrome):</strong> Visit <strong>inkstoneapp.net</strong>,
+        then tap <em>"Add to Home screen"</em> from the browser menu or the
+        install banner.
+      </p>
+      <p>
+        <strong>iPhone / iPad (Safari):</strong> Visit <strong>inkstoneapp.net</strong>,
+        tap the <strong>Share</strong> icon (rectangle with arrow) and select{' '}
+        <em>"Add to Home Screen"</em>.
+      </p>
+      <p>
+        <strong>Desktop (Chrome / Edge):</strong> Click the install icon (⊕) in
+        the address bar, or use the browser menu → <em>"Install Inkstone…"</em>.
+      </p>
+
       <h2>Writing Characters</h2>
       <p>
         Tap <strong>Write</strong> on the home screen to begin your study session.
