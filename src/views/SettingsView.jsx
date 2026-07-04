@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useCallback, useRef, useEffect } from 'preact/hooks';
+import localforage from 'localforage';
 import { Settings } from '/client/model/settings';
 import { useReactive } from '../hooks/useReactive';
 
@@ -89,12 +90,12 @@ const charsets = [
 ];
 
 export default function SettingsView() {
-  const doBackup = useCallback(() => {
+  const doBackup = useCallback(async () => {
     try {
+      const keys = await localforage.keys();
       const data = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        data[k] = localStorage.getItem(k);
+      for (const k of keys) {
+        data[k] = JSON.stringify(await localforage.getItem(k));
       }
       const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
       const url = URL.createObjectURL(blob);
@@ -112,15 +113,18 @@ export default function SettingsView() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
           if (!confirm('Restoring will overwrite your current progress. Continue?')) return;
-          Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+          await localforage.clear();
+          for (const k of Object.keys(data)) {
+            await localforage.setItem(k, JSON.parse(data[k]));
+          }
           location.reload();
         } catch(err) {
           alert('Restore failed: ' + err.message);
