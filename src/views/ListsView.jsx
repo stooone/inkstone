@@ -259,7 +259,7 @@ function BlacklistView({ onBack }) {
                 class="remove-btn"
                 onClick={() => removeItem(item)}
                 title="Remove from blacklist"
-              >✕</button>
+              >🗑</button>
             </div>
           ))}
         </>
