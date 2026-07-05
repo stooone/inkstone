@@ -821,6 +821,21 @@ html, body {
   margin: 8px 0 0;
 }
 
+/* ── Loading Spinner ── */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 12px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .info-container {
   margin-top: 20px;
 }

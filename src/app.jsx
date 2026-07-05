@@ -13,6 +13,7 @@ import Popup from './views/Popup';
 
 import { Timing } from '/client/model/timing';
 import { useReactive } from './hooks/useReactive';
+import { waitForDataLoad } from '/client/model/persistence';
 
 function formatRemainder(r) {
   if (!r) return '…';
@@ -30,6 +31,7 @@ export function App() {
   const [slideDir, setSlideDir] = useState('forward');
   const [needDownload, setNeedDownload] = useState(false);
   const [checkingAssets, setCheckingAssets] = useState(true);
+  const [dataReady, setDataReady] = useState(false);
 
   const remainder  = useReactive(() => Timing.getRemainder(), []);
 
@@ -55,6 +57,15 @@ export function App() {
     setCheckingAssets(false);
   }, []);
 
+  // Wait for persistent data (vocabulary, lists, timing, settings) to load from localforage
+  useEffect(() => {
+    waitForDataLoad().then(() => {
+      setDataReady(true);
+    }).catch(() => {
+      // Even if loading fails, show the app (data will be empty/default)
+      setDataReady(true);
+    });
+  }, []);
 
   const navigate = useCallback((view, dir = 'forward') => {
     setPrevRoute(route);
@@ -78,13 +89,16 @@ export function App() {
 
   const showBack = route !== 'index' && route !== 'teach';
 
-  if (checkingAssets) {
+  const isReady = dataReady && !checkingAssets;
+
+  if (!isReady) {
     return (
       <div class="assets-view-container">
         <div class="loader-card">
           <div class="assets-logo">石</div>
           <h2 class="assets-title">Loading Inkstone...</h2>
-          <div class="status">Checking database status</div>
+          <div class="spinner" />
+          <div class="status">Loading your data</div>
         </div>
       </div>
     );
@@ -138,4 +152,3 @@ export function App() {
     </>
   );
 }
-
