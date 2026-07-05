@@ -58,6 +58,7 @@ export default function HelpView() {
         <strong>⌂ Home</strong> – Return to the home screen.<br/>
         <strong>↩ Redo</strong> – Clear and redo the current character.<br/>
         <strong>✕ Blacklist</strong> – Skip this word forever (manageable in Lists).<br/>
+        <strong>👁 Peek</strong> – Temporarily reveal the character for a few seconds (this still counts as a failed attempt).<br/>
         <strong>🔍 Show</strong> – View stroke order and character details.
       </p>
 
