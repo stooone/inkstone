@@ -46,9 +46,10 @@ const materialize = (entry) => {
 }
 
 class Cursor {
-  constructor(filter) {
+  constructor(filter, prioritizeManually = false) {
     vocabulary.depend();
     this._list = cache.active.filter(filter);
+    this._prioritizeManually = prioritizeManually;
   }
   count() {
     return this._list.length;
@@ -60,8 +61,14 @@ class Cursor {
     let count = 0;
     let first = null;
     let result = null;
+    let manualCount = 0;
+    let manualResult = null;
+    let manualFirst = null;
+
     for (let entry of this._list) {
       const next = entry[kIndices.next] || Infinity;
+      const isManual = entry[kIndices.lists].includes('manually');
+
       if (!result || next < first) {
         count = 1;
         first = next;
@@ -72,6 +79,23 @@ class Cursor {
           result = entry;
         }
       }
+
+      if (this._prioritizeManually && isManual) {
+        if (!manualResult || next < manualFirst) {
+          manualCount = 1;
+          manualFirst = next;
+          manualResult = entry;
+        } else if (next === manualFirst) {
+          manualCount += 1;
+          if (manualCount * Math.random() < 1) {
+            manualResult = entry;
+          }
+        }
+      }
+    }
+
+    if (this._prioritizeManually && manualResult) {
+      return materialize(manualResult);
     }
     return result && materialize(result);
   }
@@ -139,7 +163,7 @@ class Vocabulary {
     return cache.active.map(materialize);
   }
   static getNewItems() {
-    return new Cursor((entry) => entry[kIndices.attempts] === 0);
+    return new Cursor((entry) => entry[kIndices.attempts] === 0, true);
   }
   static updateBlacklist(item, blacklisted) {
     const word = item.word;

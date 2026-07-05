@@ -1,4 +1,7 @@
 import { PersistentDict } from '/client/model/persistence';
+import { readList } from '/client/assets';
+import { Settings } from '/client/model/settings';
+import { Vocabulary } from '/client/model/vocabulary';
 
 const kLists = {
   '100cr': {category: 'General', name: '100 Common Radicals'},
@@ -11,7 +14,14 @@ const kLists = {
   'nhsk6': {category: 'Hanyu Shuiping Kaoshi', name: 'HSK Level 6'},
 };
 
-const lists = new PersistentDict('lists');
+// On first launch, before the user has enabled any lists, auto-enable HSK Level 1.
+const enableDefaultList = (cache) => {
+  if (!Object.keys(cache).some((key) => key.startsWith('status.'))) {
+    lists.set('status.nhsk1', true);
+  }
+};
+
+const lists = new PersistentDict('lists', enableDefaultList);
 
 const getMatchingLists = (condition) => {
   const result = {};
@@ -55,6 +65,24 @@ class Lists {
   }
   static isListEnabled(list) {
     return lists.get(`status.${list}`);
+  }
+
+  static async loadEnabledLists() {
+    const enabled = Object.keys(Lists.getEnabledLists());
+    if (enabled.length === 0) return;
+
+    const charset = Settings.get('character_set') || 'simplified';
+    await Promise.all(enabled.map(async (listKey) => {
+      try {
+        const data = await readList(listKey);
+        data.forEach((row) => {
+          const word = row[charset];
+          if (word) Vocabulary.addItem(word, listKey);
+        });
+      } catch (err) {
+        console.error(`Failed to load enabled list ${listKey}:`, err);
+      }
+    }));
   }
 }
 

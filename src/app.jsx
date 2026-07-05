@@ -14,6 +14,7 @@ import Popup from './views/Popup';
 import { Timing } from '/client/model/timing';
 import { useReactive } from './hooks/useReactive';
 import { waitForDataLoad } from '/client/model/persistence';
+import { Lists } from '/client/model/lists';
 
 function formatRemainder(r) {
   if (!r) return '…';
@@ -60,7 +61,11 @@ export function App() {
   // Wait for persistent data (vocabulary, lists, timing, settings) to load from localforage
   useEffect(() => {
     waitForDataLoad().then(() => {
-      setDataReady(true);
+      Lists.loadEnabledLists().then(() => {
+        setDataReady(true);
+      }).catch(() => {
+        setDataReady(true);
+      });
     }).catch(() => {
       // Even if loading fails, show the app (data will be empty/default)
       setDataReady(true);
