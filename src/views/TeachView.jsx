@@ -180,6 +180,14 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     window.dispatchEvent(new Event('makemeahanzi-next-character'));
     if (item.index < item.tasks.length) {
       hwRef.current?.moveToCorner();
+      // In rote mode, reveal the next character after moveToCorner clears the watermark
+      if (roteMode) {
+        setTimeout(() => {
+          const task = item.tasks[item.index];
+          hwRef.current?.reveal(task.strokes);
+          hwRef.current?.highlight(task.strokes[0]);
+        }, 200);
+      }
     } else {
       // All characters done
       transition();
@@ -193,8 +201,11 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     const item = itemRef.current;
     if (!item.card) return;
     const card = item.card;
-    // In rote mode, skip SRS – don't call Timing.completeCard
-    if (roteMode) return;
+    // In rote mode, skip SRS – advance to next card instead
+    if (roteMode) {
+      setTimeout(() => setRoteTick(t => t + 1), 300);
+      return;
+    }
     const result = item.tasks.reduce((max, t) => Math.max(max, t.result ?? 0), 0);
     setTimeout(() => Timing.completeCard(card, result), 20);
   }, [roteMode]);
@@ -415,7 +426,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
   const canvasWidth = Settings.get('canvas_width');
   const margin = Math.max(Math.min(Math.floor((100 - canvasWidth) / 2), 50), 0);
 
-  const showRegradeIcon = Settings.get('show_regrading_icon') && helpers.complete;
+  const showRegradeIcon = !roteMode && Settings.get('show_regrading_icon') && helpers.complete;
 
   // ------------------------------------------------------------------
   // Blacklist
@@ -488,12 +499,12 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     itemRef.current.tasks.forEach((t, i) => t.penalties = penalties[i]);
     hwRef.current?.clear(true);
     setH({ grading: false, complete: false });
-    // In rote mode, re-reveal the character after redo
+    // In rote mode, re-reveal current character after redo
     if (roteMode) {
       setTimeout(() => {
         const item = itemRef.current;
-        if (item.tasks.length > 0) {
-          const task = item.tasks[0];
+        if (item.index < item.tasks.length) {
+          const task = item.tasks[item.index];
           hwRef.current?.reveal(task.strokes);
           hwRef.current?.highlight(task.strokes[0]);
         }
@@ -537,14 +548,13 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
       readItem(roteCard.data, charset).then((data) => {
         if (cancelled) return;
         onItemData(data);
-        // Auto-reveal the character in rote mode (like peek)
+        // Auto-reveal first character in rote mode (others revealed on advance)
         setTimeout(() => {
           if (cancelled) return;
           const item = itemRef.current;
           if (item.tasks.length > 0) {
-            const task = item.tasks[0];
-            hwRef.current?.reveal(task.strokes);
-            hwRef.current?.highlight(task.strokes[0]);
+            hwRef.current?.reveal(item.tasks[0].strokes);
+            hwRef.current?.highlight(item.tasks[0].strokes[0]);
           }
         }, 100);
       }).catch((err) => {
@@ -629,7 +639,10 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
         <button id="ctrl-home"      class="teach-ctrl" title="Home"      onClick={() => navigate('index', 'back')}>⌂</button>
         <button id="ctrl-redo"      class="teach-ctrl" title="Redo"      onClick={onRedo}>↩</button>
         {roteMode ? (
-          <button id="ctrl-skip"    class="teach-ctrl" title="Skip"      onClick={() => setRoteTick(t => t + 1)}>⏭</button>
+          <button id="ctrl-skip"    class="teach-ctrl" title="Skip"      onClick={() => {
+            roteRef.current.repeatCount = kRoteRepeats;
+            setRoteTick(t => t + 1);
+          }}>⏭</button>
         ) : (
           <button id="ctrl-peek"    class="teach-ctrl" title="Peek"      onClick={onPeek}>👁</button>
         )}
