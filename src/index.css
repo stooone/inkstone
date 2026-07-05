@@ -163,8 +163,8 @@ html, body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 32px 24px;
-  max-width: 480px;
+  padding: 24px 20px;
+  max-width: 420px;
   width: 100%;
   text-align: center;
   box-shadow: 0 8px 40px rgba(0,0,0,.15);
@@ -172,31 +172,32 @@ html, body {
 
 .welcome-logo {
   font-family: var(--font-cjk);
-  font-size: 64px;
+  font-size: 48px;
   font-weight: 700;
   color: var(--accent);
-  margin-bottom: 12px;
+  margin-bottom: 4px;
+  line-height: 1.1;
   filter: drop-shadow(0 2px 8px rgba(181,69,27,.25));
 }
 
 .welcome-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
 
 .welcome-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin: 0 0 28px;
-  line-height: 1.5;
+  margin: 0 0 16px;
+  line-height: 1.4;
 }
 
 .welcome-modes {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 14px;
   text-align: left;
 }
 
@@ -204,47 +205,40 @@ html, body {
   flex: 1;
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 14px;
+  border-radius: 10px;
+  padding: 12px 10px;
 }
 
 .welcome-mode-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
+  font-size: 22px;
+  margin-bottom: 4px;
 }
 
 .welcome-mode h3 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  margin: 0 0 6px;
+  margin: 0 0 3px;
 }
 
 .welcome-mode p {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .welcome-tips {
   text-align: left;
-  margin-bottom: 24px;
-}
-
-.welcome-tips h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 8px;
+  margin-bottom: 16px;
 }
 
 .welcome-tips ul {
   margin: 0;
   padding: 0 0 0 18px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .welcome-btn {
