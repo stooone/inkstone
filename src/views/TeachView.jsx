@@ -10,6 +10,7 @@ import { Matcher } from '/lib/matcher/matcher';
 
 const kMaxMistakes  = 3;
 const kMaxPenalties = 4;
+const kRoteRepeats  = 3;
 
 const getResult = (penalties) => Math.min(Math.floor(2 * penalties / kMaxPenalties) + 1, 3);
 const fixMedian = (median) => median.map((x) => [x[0], 900 - x[1]]);
@@ -72,9 +73,29 @@ function GradingOverlay({ onGrade }) {
 }
 
 // -------------------------------------------------------------------
+// RoteReviewErrorCard – shown when no rote review items are available
+// -------------------------------------------------------------------
+function RoteReviewErrorCard({ onNavigate }) {
+  return (
+    <div class="error-card">
+      <h2>No cards available for rote review!</h2>
+      <p style="color: var(--text-muted); font-size: 14px;">
+        You need cards you've already started learning with a due date within 5 days.
+      </p>
+      <button
+        class="error-option-btn"
+        onClick={() => onNavigate('index', 'back')}
+      >
+        Go back
+      </button>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------------
 // TeachView
 // -------------------------------------------------------------------
-export default function TeachView({ showPopup, hidePopup, navigate }) {
+export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) {
   const card = useReactive(() => Timing.getNextCard(), []);
 
   const [helpers, setHelpers] = useState({
@@ -90,6 +111,60 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
 
   // Item state (mutable, not reactive state – mutated in callbacks)
   const itemRef = useRef({ card: null, index: 0, tasks: [] });
+
+  // Rote review state
+  const roteRef = useRef({
+    queue: [],        // shuffled array of word items
+    queueIndex: 0,    // current position in queue
+    repeatCount: 0,   // how many times current card has been shown (0..kRoteRepeats-1)
+    currentWord: null, // the current word data
+  });
+
+  // ------------------------------------------------------------------
+  // Rote review: build a shuffled queue from Vocabulary.getRoteReviewItems()
+  // ------------------------------------------------------------------
+  const buildRoteQueue = useCallback(() => {
+    const cursor = Vocabulary.getRoteReviewItems();
+    const items = cursor.fetch();
+    if (items.length === 0) return [];
+    // Shuffle (Fisher-Yates)
+    const shuffled = items.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Rote review: get the next card from the rote queue
+  // ------------------------------------------------------------------
+  const getNextRoteCard = useCallback(() => {
+    const r = roteRef.current;
+    if (r.queue.length === 0) {
+      r.queue = buildRoteQueue();
+      r.queueIndex = 0;
+      r.repeatCount = 0;
+      if (r.queue.length === 0) return null;
+    }
+
+    // If we've repeated the current card kRoteRepeats times, move to next
+    if (r.repeatCount >= kRoteRepeats) {
+      r.queueIndex += 1;
+      r.repeatCount = 0;
+      // If we've exhausted the queue, reshuffle and start over
+      if (r.queueIndex >= r.queue.length) {
+        r.queue = buildRoteQueue();
+        r.queueIndex = 0;
+        if (r.queue.length === 0) return null;
+      }
+    }
+
+    const item = r.queue[r.queueIndex];
+    r.repeatCount += 1;
+    r.currentWord = item;
+    return { data: item, deck: 'rote', ts: Date.timestamp() };
+  }, [buildRoteQueue]);
 
   // ------------------------------------------------------------------
   // Handwriting event callbacks
@@ -118,9 +193,11 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
     const item = itemRef.current;
     if (!item.card) return;
     const card = item.card;
+    // In rote mode, skip SRS – don't call Timing.completeCard
+    if (roteMode) return;
     const result = item.tasks.reduce((max, t) => Math.max(max, t.result ?? 0), 0);
     setTimeout(() => Timing.completeCard(card, result), 20);
-  }, []);
+  }, [roteMode]);
 
   const transition = useCallback(() => {
     // CSS slide animation: re-mount canvas by clearing and re-drawing
@@ -245,18 +322,33 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
   }, []);
 
   const onItemData = useCallback((data) => {
-    const c = Timing.getNextCard();
-    if (!c || data.word !== c.data.word) return;
-    setH({
-      deck: c.deck,
-      definition: data.definition,
-      pinyin: data.pinyin,
-      word: data.word,
-      error: null, options: null,
-      grading: false, complete: false, loadError: null,
-    });
-    updateItem(c, data);
-  }, [updateItem]);
+    if (roteMode) {
+      // In rote mode, use the rote queue card
+      const r = roteRef.current;
+      if (!r.currentWord || data.word !== r.currentWord.word) return;
+      setH({
+        deck: 'rote',
+        definition: data.definition,
+        pinyin: data.pinyin,
+        word: data.word,
+        error: null, options: null,
+        grading: false, complete: false, loadError: null,
+      });
+      updateItem({ data: r.currentWord, deck: 'rote', ts: Date.timestamp() }, data);
+    } else {
+      const c = Timing.getNextCard();
+      if (!c || data.word !== c.data.word) return;
+      setH({
+        deck: c.deck,
+        definition: data.definition,
+        pinyin: data.pinyin,
+        word: data.word,
+        error: null, options: null,
+        grading: false, complete: false, loadError: null,
+      });
+      updateItem(c, data);
+    }
+  }, [updateItem, roteMode]);
 
   // ------------------------------------------------------------------
   // Mount / initialize Handwriting canvas
@@ -283,9 +375,10 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
   }, [onClick, onDouble, onStroke]);
 
   // ------------------------------------------------------------------
-  // React to card changes
+  // React to card changes (normal mode only)
   // ------------------------------------------------------------------
   useEffect(() => {
+    if (roteMode) return; // Rote mode handled separately below
     if (!card) return;
     hwRef.current?.clear();
     setH({ deck: card.deck, grading: false, complete: false, loadError: null });
@@ -307,8 +400,6 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       }).catch((err) => {
         if (cancelled) return;
         console.error('Card read error:', err.stack || err);
-        // Show an in-place error instead of reshuffling (reshuffling causes an
-        // infinite re-render loop: new card → load error → reshuffle → repeat).
         setH({
           loadError: `Failed to load "${card.data.word}": ${err.message || err}`,
           deck: card.deck,
@@ -316,7 +407,7 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       });
     }, 20);
     return () => { cancelled = true; };
-  }, [card]);
+  }, [card, roteMode]);
 
   // ------------------------------------------------------------------
   // Canvas size
@@ -397,7 +488,18 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
     itemRef.current.tasks.forEach((t, i) => t.penalties = penalties[i]);
     hwRef.current?.clear(true);
     setH({ grading: false, complete: false });
-  }, [updateItem]);
+    // In rote mode, re-reveal the character after redo
+    if (roteMode) {
+      setTimeout(() => {
+        const item = itemRef.current;
+        if (item.tasks.length > 0) {
+          const task = item.tasks[0];
+          hwRef.current?.reveal(task.strokes);
+          hwRef.current?.highlight(task.strokes[0]);
+        }
+      }, 200);
+    }
+  }, [updateItem, roteMode]);
 
   // ------------------------------------------------------------------
   // Peek
@@ -409,6 +511,53 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
     task.penalties += kMaxPenalties;
     hwRef.current?.peek(task.strokes);
   }, [maybeAdvance]);
+
+  // Rote tick counter to force card reloads
+  const [roteTick, setRoteTick] = useState(0);
+
+  // ------------------------------------------------------------------
+  // Rote mode: reload card when roteTick changes
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (!roteMode) return;
+    const roteCard = getNextRoteCard();
+    if (!roteCard) {
+      setH({ error: 'No cards available for rote review!', options: null, deck: 'errors' });
+      updateItem({ data: { error: 'No cards available for rote review!', options: [] }, deck: 'errors' }, { characters: [] });
+      return;
+    }
+
+    hwRef.current?.clear();
+    setH({ deck: 'rote', grading: false, complete: false, loadError: null, error: null, options: null });
+
+    const charset = Settings.get('character_set');
+    let cancelled = false;
+    setTimeout(() => {
+      if (cancelled) return;
+      readItem(roteCard.data, charset).then((data) => {
+        if (cancelled) return;
+        onItemData(data);
+        // Auto-reveal the character in rote mode (like peek)
+        setTimeout(() => {
+          if (cancelled) return;
+          const item = itemRef.current;
+          if (item.tasks.length > 0) {
+            const task = item.tasks[0];
+            hwRef.current?.reveal(task.strokes);
+            hwRef.current?.highlight(task.strokes[0]);
+          }
+        }, 100);
+      }).catch((err) => {
+        if (cancelled) return;
+        console.error('Card read error:', err.stack || err);
+        setH({
+          loadError: `Failed to load "${roteCard.data.word}": ${err.message || err}`,
+          deck: 'rote',
+        });
+      });
+    }, 20);
+    return () => { cancelled = true; };
+  }, [roteTick, roteMode]);
 
   // ------------------------------------------------------------------
   // Render
@@ -422,16 +571,31 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       <div class="teach-prompt">
         <div class="teach-pinyin">{helpers.pinyin}</div>
         <div class="teach-definition">{helpers.definition}</div>
+        {roteMode && roteRef.current.currentWord && (
+          <div class="rote-repeat-indicator">
+            Repetition {roteRef.current.repeatCount} of {kRoteRepeats}
+          </div>
+        )}
       </div>
 
       {/* Canvas area */}
       <div class="teach-canvas-wrap">
         {isError ? (
-          <ErrorCard card={card} onNavigate={navigate} />
+          roteMode ? (
+            <RoteReviewErrorCard onNavigate={navigate} />
+          ) : (
+            <ErrorCard card={card} onNavigate={navigate} />
+          )
         ) : isLoadError ? (
           <div class="load-error-card">
             <p>⚠️ {helpers.loadError}</p>
-            <button id="btn-skip-card" class="error-option-btn" onClick={() => Timing.shuffle()}>
+            <button id="btn-skip-card" class="error-option-btn" onClick={() => {
+              if (roteMode) {
+                setRoteTick(t => t + 1);
+              } else {
+                Timing.shuffle();
+              }
+            }}>
               Skip to next card
             </button>
           </div>
@@ -464,7 +628,11 @@ export default function TeachView({ showPopup, hidePopup, navigate }) {
       <div class="teach-controls">
         <button id="ctrl-home"      class="teach-ctrl" title="Home"      onClick={() => navigate('index', 'back')}>⌂</button>
         <button id="ctrl-redo"      class="teach-ctrl" title="Redo"      onClick={onRedo}>↩</button>
-        <button id="ctrl-peek"      class="teach-ctrl" title="Peek"      onClick={onPeek}>👁</button>
+        {roteMode ? (
+          <button id="ctrl-skip"    class="teach-ctrl" title="Skip"      onClick={() => setRoteTick(t => t + 1)}>⏭</button>
+        ) : (
+          <button id="ctrl-peek"    class="teach-ctrl" title="Peek"      onClick={onPeek}>👁</button>
+        )}
         <button id="ctrl-blacklist" class="teach-ctrl" title="Blacklist" onClick={onBlacklist}>✕</button>
         <button id="ctrl-show"      class="teach-ctrl" title="Details"   onClick={onShow}>🔍</button>
       </div>

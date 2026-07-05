@@ -8,6 +8,7 @@ import SettingsView from './views/SettingsView';
 import ListsView from './views/ListsView';
 import HelpView from './views/HelpView';
 import StatisticsView from './views/StatisticsView';
+import WelcomeView from './views/WelcomeView';
 import AnswerPanel from './views/AnswerPanel';
 import Popup from './views/Popup';
 
@@ -22,7 +23,7 @@ function formatRemainder(r) {
   return `${total} left`;
 }
 
-const VIEWS = ['index', 'teach', 'settings', 'lists', 'help', 'stats'];
+const VIEWS = ['index', 'teach', 'rote', 'settings', 'lists', 'help', 'stats'];
 
 export function App() {
   const [route, setRoute] = useState('index');
@@ -33,6 +34,9 @@ export function App() {
   const [needDownload, setNeedDownload] = useState(false);
   const [checkingAssets, setCheckingAssets] = useState(true);
   const [dataReady, setDataReady] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('inkstone_welcome_seen');
+  });
 
   const remainder  = useReactive(() => Timing.getRemainder(), []);
 
@@ -85,16 +89,26 @@ export function App() {
 
   const headerTitle = {
     index: 'Inkstone',
-    teach: 'Write',
+    teach: 'SRS Review',
+    rote: 'Rote Review',
     settings: 'Settings',
     lists: 'Lists',
     help: 'Help',
     stats: 'Statistics',
   }[route] || 'Inkstone';
 
-  const showBack = route !== 'index' && route !== 'teach';
+  const showBack = route !== 'index' && route !== 'teach' && route !== 'rote';
 
   const isReady = dataReady && !checkingAssets;
+
+  const dismissWelcome = useCallback(() => {
+    localStorage.setItem('inkstone_welcome_seen', '1');
+    setShowWelcome(false);
+  }, []);
+
+  if (showWelcome) {
+    return <WelcomeView onDismiss={dismissWelcome} />;
+  }
 
   if (!isReady) {
     return (
@@ -120,7 +134,7 @@ export function App() {
               ← Done
             </button>
           )}
-          {route === 'teach' && (
+          {(route === 'teach' || route === 'rote') && (
             <button class="btn-back" onClick={() => navigate('index', 'back')} id="btn-teach-home">
               ⌂
             </button>
@@ -128,7 +142,7 @@ export function App() {
         </div>
         <div class="header-center">{headerTitle}</div>
         <div class="header-right">
-          {(route === 'index' || route === 'teach') && (
+          {(route === 'index' || route === 'teach' || route === 'rote') && (
             <span class="header-remainder">{formatRemainder(remainder)}</span>
           )}
         </div>
@@ -136,7 +150,8 @@ export function App() {
 
       <div class="view" id={`view-${route}`} key={route}>
         {route === 'index'    && <IndexView navigate={navigate} />}
-        {route === 'teach'    && <TeachView showPopup={showPopup} hidePopup={hidePopup} navigate={navigate} />}
+        {route === 'teach'    && <TeachView showPopup={showPopup} hidePopup={hidePopup} navigate={navigate} roteMode={false} />}
+        {route === 'rote'     && <TeachView showPopup={showPopup} hidePopup={hidePopup} navigate={navigate} roteMode={true} />}
         {route === 'settings' && <SettingsView />}
         {route === 'lists'    && <ListsView />}
         {route === 'help'     && <HelpView />}

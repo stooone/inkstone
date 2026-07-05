@@ -7,13 +7,22 @@ export default function IndexView({ navigate }) {
       <div class="index-title">Inkstone</div>
       <div class="index-version">Beta</div>
 
-      <button
-        id="btn-write"
-        class="btn-write"
-        onClick={() => navigate('teach')}
-      >
-        Write
-      </button>
+      <div class="index-main-buttons">
+        <button
+          id="btn-write"
+          class="btn-write"
+          onClick={() => navigate('teach')}
+        >
+          SRS Review
+        </button>
+        <button
+          id="btn-rote"
+          class="btn-rote"
+          onClick={() => navigate('rote')}
+        >
+          Rote Review
+        </button>
+      </div>
 
       <div class="index-options">
         <button

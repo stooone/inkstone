@@ -43,7 +43,7 @@ export default function HelpView() {
 
       <h2>Writing Characters</h2>
       <p>
-        Tap <strong>Write</strong> on the home screen to begin your study session.
+        Tap <strong>SRS Review</strong> on the home screen to begin your study session.
         Draw each stroke on the canvas using your finger or mouse.
         The app will match your stroke to the expected stroke order.
       </p>
@@ -53,12 +53,25 @@ export default function HelpView() {
         <strong>Double tap</strong> when fully stuck to reveal the full character.
       </p>
 
+      <h2>Rote Review</h2>
+      <p>
+        Tap <strong>Rote Review</strong> on the home screen for repetitive writing practice.
+        This mode shows random characters you've already started learning (due within 5 days).
+        Each character is automatically revealed and repeated 3 times — like writing it on paper
+        over and over. No spaced repetition updates occur, so your SRS schedule is unaffected.
+      </p>
+      <p>
+        Use the <strong>⏭ Skip</strong> button to move to the next character at any time.
+        The <strong>↩ Redo</strong> button clears the canvas and re-reveals the character.
+      </p>
+
       <h2>Toolbar Buttons</h2>
       <p>
         <strong>⌂ Home</strong> – Return to the home screen.<br/>
         <strong>↩ Redo</strong> – Clear and redo the current character.<br/>
         <strong>✕ Blacklist</strong> – Skip this word forever (manageable in Lists).<br/>
         <strong>👁 Peek</strong> – Temporarily reveal the character for a few seconds (this still counts as a failed attempt).<br/>
+        <strong>⏭ Skip</strong> – (Rote Review only) Skip to the next character.<br/>
         <strong>🔍 Show</strong> – View stroke order and character details.
       </p>
 

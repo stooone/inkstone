@@ -165,6 +165,13 @@ class Vocabulary {
   static getNewItems() {
     return new Cursor((entry) => entry[kIndices.attempts] === 0, true);
   }
+  static getRoteReviewItems() {
+    const now = Date.timestamp();
+    const fiveDays = now + 5 * 86400;
+    return new Cursor((entry) => {
+      return entry[kIndices.attempts] > 0 && entry[kIndices.next] < fiveDays;
+    });
+  }
   static updateBlacklist(item, blacklisted) {
     const word = item.word;
     if (!!blacklisted === !!cache.blacklist[word]) return;
