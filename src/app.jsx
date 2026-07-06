@@ -1,5 +1,5 @@
 import { h, Fragment } from 'preact';
-import { useState, useEffect, useCallback } from 'preact/hooks';
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import './index.css';
 
 import IndexView from './views/IndexView';
@@ -37,6 +37,10 @@ export function App() {
   const [showWelcome, setShowWelcome] = useState(() => {
     return !localStorage.getItem('inkstone_welcome_seen');
   });
+
+  // Keep a ref to the current route so navigate's callback always has the latest value
+  const routeRef = useRef(route);
+  routeRef.current = route;
 
   const remainder  = useReactive(() => Timing.getRemainder(), []);
 
@@ -77,12 +81,40 @@ export function App() {
   }, []);
 
   const navigate = useCallback((view, dir = 'forward') => {
-    setPrevRoute(route);
+    const currentRoute = routeRef.current;
+    setPrevRoute(currentRoute);
     setSlideDir(dir);
     setRoute(view);
-  }, [route]);
+    // Push a new history entry so the Android/browser back button can return here
+    history.pushState({ route: view, prevRoute: currentRoute }, '', '');
+  }, []);
 
-  const goBack = useCallback(() => navigate('index', 'back'), [navigate]);
+  // Replace the initial history entry's state so popstate always has a route to read
+  useEffect(() => {
+    history.replaceState({ route: 'index', prevRoute: null }, '', '');
+  }, []);
+
+  // Listen for browser/Android back button presses
+  useEffect(() => {
+    const onPopState = (event) => {
+      if (event.state && event.state.route) {
+        setPrevRoute(event.state.prevRoute || 'index');
+        setSlideDir('back');
+        setRoute(event.state.route);
+      } else {
+        // No state in history (shouldn't normally happen), go to index
+        setPrevRoute(null);
+        setSlideDir('back');
+        setRoute('index');
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const goBack = useCallback(() => {
+    history.back();
+  }, []);
 
   const showPopup = useCallback((config) => setPopup(config), []);
   const hidePopup = useCallback(() => setPopup(null), []);
