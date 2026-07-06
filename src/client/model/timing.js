@@ -36,15 +36,18 @@ const time_left = new ReactiveVar();
 
 const tick = () => {
   const now = Date.timestamp();
-  const counts = timing.get() || {ts: -Infinity};
+  const counts = timing.get();
   const todayMidnight = getTodayMidnight();
+  const nextMidnight = todayMidnight + 86400;
+  time_left.set(nextMidnight - now);
+
+  // If persistent data hasn't loaded yet, don't reset — wait until
+  // it's available to avoid overwriting saved counts with zeros.
+  if (!counts) return;
 
   if (counts.ts < todayMidnight) {
     timing.set(newCounts(now));
   }
-
-  const nextMidnight = todayMidnight + 86400;
-  time_left.set(nextMidnight - now);
 }
 
 // Start the timer tick
