@@ -48,7 +48,7 @@ const getAnimationData = (strokes, medians, options) => {
   options = options || {};
   const initial_delay = 1024 * (options.initial_delay || 0.9);
   const per_stroke_delay = 1024 * (options.per_stroke_delay || 0.3);
-  const speed = 1024 * (options.speed || 0.03);
+  const speed = 1024 * (options.speed || 0.015);
 
   const lengths = medians.map((x) => getMedianLength(x) + kWidth)
                          .map(Math.round);
