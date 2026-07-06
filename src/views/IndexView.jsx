@@ -1,5 +1,7 @@
 import { h } from 'preact';
 
+const buildDate = import.meta.env.BUILD_DATE || 'unknown';
+
 export default function IndexView({ navigate }) {
   return (
     <div id="view-index">
@@ -59,6 +61,7 @@ export default function IndexView({ navigate }) {
         </button>
       </div>
       <div class="index-version index-website">inkstoneapp.net</div>
+      <div class="index-version index-build-date">Built {buildDate}</div>
     </div>
   );
 }

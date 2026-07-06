@@ -45,6 +45,9 @@ export default defineConfig({
       }
     })
   ],
+  define: {
+    'import.meta.env.BUILD_DATE': JSON.stringify(new Date().toISOString()),
+  },
   resolve: {
     alias: {
       '/src': resolve(__dirname, './src'),
