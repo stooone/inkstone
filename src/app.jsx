@@ -101,12 +101,8 @@ export function App() {
         setPrevRoute(event.state.prevRoute || 'index');
         setSlideDir('back');
         setRoute(event.state.route);
-      } else {
-        // No state in history (shouldn't normally happen), go to index
-        setPrevRoute(null);
-        setSlideDir('back');
-        setRoute('index');
       }
+      // Hash-only entries (no route state) are handled by hashchange listener
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);

@@ -463,31 +463,31 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
   const onShow = useCallback(() => {
     const tasks = itemRef.current.tasks;
     if (tasks.length === 0) return;
-    if (tasks.length === 1) {
-      const t = tasks[0];
-      if (t.missing.length > 0 && t.penalties < kMaxPenalties) {
-        showPopup({
-          title: 'Character Details',
-          text: 'Looking at the details page will count as getting this character wrong. Proceed?',
-          buttons: [
-            {
-              label: 'Yes',
-              callback: () => {
-                t.penalties += kMaxPenalties;
-                setTimeout(() => {
-                  window.location.hash = t.data.character.codePointAt(0);
-                }, 0);
-                hidePopup();
-              }
-            },
-            { label: 'No', class: 'bold' },
-          ],
-        });
-      } else {
-        window.location.hash = t.data.character.codePointAt(0);
-      }
+    const t = tasks[Math.min(itemRef.current.index, tasks.length - 1)];
+    if (roteMode) {
+      window.location.hash = t.data.character.codePointAt(0);
+    } else if (t.missing.length > 0 && t.penalties < kMaxPenalties) {
+      showPopup({
+        title: 'Character Details',
+        text: 'Looking at the details page will count as getting this character wrong. Proceed?',
+        buttons: [
+          {
+            label: 'Yes',
+            callback: () => {
+              t.penalties += kMaxPenalties;
+              setTimeout(() => {
+                window.location.hash = t.data.character.codePointAt(0);
+              }, 0);
+              hidePopup();
+            }
+          },
+          { label: 'No', class: 'bold' },
+        ],
+      });
+    } else {
+      window.location.hash = t.data.character.codePointAt(0);
     }
-  }, [showPopup, hidePopup]);
+  }, [showPopup, hidePopup, roteMode]);
 
   // ------------------------------------------------------------------
   // Redo
