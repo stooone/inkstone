@@ -41,7 +41,7 @@ export default function HelpView() {
         the address bar, or use the browser menu → <em>"Install Inkstone…"</em>.
       </p>
 
-      <h2>Writing Characters</h2>
+      <h2>SRS Review</h2>
       <p>
         Tap <strong>SRS Review</strong> on the home screen to begin your study session.
         Draw each stroke on the canvas using your finger or mouse.
@@ -77,9 +77,44 @@ export default function HelpView() {
 
       <h2>Grading</h2>
       <p>
-        After completing a character, you can manually re-grade it by
+        After completing a character, the canvas glows with one of four colors
+        indicating how well you wrote it. You can also manually re-grade by
         swiping down on the canvas (the flag icon will appear if enabled).
-        Grades: ⭐ Perfect · ✓ Good · ⏸ Okay · ✕ Wrong.
+      </p>
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:14px">
+        <thead>
+          <tr style="background:var(--bg2)">
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Result</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Color</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:6px 12px">⭐ Perfect</td>
+            <td style="padding:6px 12px"><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#84b4d8;vertical-align:middle;margin-right:6px"></span>Blue</td>
+            <td style="padding:6px 12px">No mistakes, flawless execution</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 12px">✓ Good</td>
+            <td style="padding:6px 12px"><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#88c874;vertical-align:middle;margin-right:6px"></span>Green</td>
+            <td style="padding:6px 12px">Minor mistakes, essentially correct</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 12px">⏸ Okay</td>
+            <td style="padding:6px 12px"><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#c0c080;vertical-align:middle;margin-right:6px"></span>Yellow</td>
+            <td style="padding:6px 12px">Several mistakes, partial correctness</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 12px">✕ Wrong</td>
+            <td style="padding:6px 12px"><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#e87878;vertical-align:middle;margin-right:6px"></span>Red</td>
+            <td style="padding:6px 12px">Too many mistakes, counts as wrong</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px;color:var(--fg2);font-size:13px">
+        Penalties accumulate from wrong strokes, tapping for hints, or using the Peek button.
+        The fewer penalties, the better the result.
       </p>
 
       <h2>Word Lists</h2>
