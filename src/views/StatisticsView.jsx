@@ -9,14 +9,14 @@ function computeStats() {
   const allItems = Vocabulary.getAllItems ? Vocabulary.getAllItems() : [];
 
   const total = allItems.length;
-  const learned = allItems.filter(e => e.attempts > 0);
+  const learning = allItems.filter(e => e.attempts > 0);
   const new_ = allItems.filter(e => e.attempts === 0);
   // Mastered: at least 5 attempts and success rate >= 80%
-  const mastered = learned.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8);
+  const mastered = learning.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8);
 
   // Compute overall success rate
-  const totalAttempts = learned.reduce((sum, e) => sum + e.attempts, 0);
-  const totalSuccesses = learned.reduce((sum, e) => sum + e.successes, 0);
+  const totalAttempts = learning.reduce((sum, e) => sum + e.attempts, 0);
+  const totalSuccesses = learning.reduce((sum, e) => sum + e.successes, 0);
   const overallRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
 
   // By list
@@ -24,18 +24,18 @@ function computeStats() {
   const listStats = {};
   Object.keys(enabledLists).forEach(listKey => {
     const listItems = allItems.filter(e => e.lists && e.lists.includes(listKey));
-    const listLearned = listItems.filter(e => e.attempts > 0);
+    const listLearning = listItems.filter(e => e.attempts > 0);
     listStats[listKey] = {
       name: enabledLists[listKey].name,
       total: listItems.length,
-      learned: listLearned.length,
-      mastered: listLearned.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8).length,
+      learning: listLearning.length,
+      mastered: listLearning.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8).length,
     };
   });
 
   return {
     total,
-    learned: learned.length,
+    learning: learning.length,
     newCount: new_.length,
     mastered: mastered.length,
     overallRate,
@@ -63,17 +63,17 @@ function ProgressBar({ value, max, color }) {
   );
 }
 
-function SegmentedProgressBar({ mastered, learned, total }) {
+function SegmentedProgressBar({ mastered, learning, total }) {
   const masteredPct = total > 0 ? Math.round((mastered / total) * 100) : 0;
-  const learnedPct = total > 0 ? Math.round(((learned - mastered) / total) * 100) : 0;
-  const remainingPct = total > 0 ? 100 - masteredPct - learnedPct : 100;
+  const learningPct = total > 0 ? Math.round(((learning - mastered) / total) * 100) : 0;
+  const remainingPct = total > 0 ? 100 - masteredPct - learningPct : 100;
   return (
     <div class="stat-progress stat-progress-segmented">
       {masteredPct > 0 && (
         <div class="stat-progress-bar stat-progress-mastered" style={{ width: `${masteredPct}%` }}></div>
       )}
-      {learnedPct > 0 && (
-        <div class="stat-progress-bar stat-progress-learned" style={{ width: `${learnedPct}%` }}></div>
+      {learningPct > 0 && (
+        <div class="stat-progress-bar stat-progress-learning" style={{ width: `${learningPct}%` }}></div>
       )}
       {remainingPct > 0 && (
         <div class="stat-progress-bar stat-progress-remaining" style={{ width: `${remainingPct}%` }}></div>
@@ -91,7 +91,7 @@ export default function StatisticsView() {
       <div class="section-divider">Overview</div>
       <div class="stats-grid">
         <StatCard label="Total Characters" value={stats.total} color="var(--blue)" />
-        <StatCard label="Learned" value={stats.learned} color="var(--green)" />
+        <StatCard label="Learning" value={stats.learning} color="var(--green)" />
         <StatCard label="Mastered" value={stats.mastered} color="var(--purple)" />
         <StatCard label="New" value={stats.newCount} color="var(--ink-muted)" />
         <StatCard label="Success Rate" value={`${stats.overallRate}%`} color="var(--orange)" />
@@ -102,9 +102,9 @@ export default function StatisticsView() {
         <div class="stats-overall-progress">
           <div class="stat-progress-label">
             <span>Overall Progress</span>
-            <span>{stats.learned} / {stats.total} ({Math.round((stats.learned / stats.total) * 100)}%)</span>
+            <span>{stats.learning} / {stats.total} ({Math.round((stats.learning / stats.total) * 100)}%)</span>
           </div>
-          <SegmentedProgressBar mastered={stats.mastered} learned={stats.learned} total={stats.total} />
+          <SegmentedProgressBar mastered={stats.mastered} learning={stats.learning} total={stats.total} />
         </div>
       )}
 
@@ -116,13 +116,13 @@ export default function StatisticsView() {
             <div class="list-stat-item" key={key}>
               <div class="list-stat-header">
                 <span class="list-stat-name">{ls.name}</span>
-                <span class="list-stat-count">{ls.learned} / {ls.total}</span>
+                <span class="list-stat-count">{ls.learning} / {ls.total}</span>
               </div>
-              <SegmentedProgressBar mastered={ls.mastered} learned={ls.learned} total={ls.total} />
+              <SegmentedProgressBar mastered={ls.mastered} learning={ls.learning} total={ls.total} />
               <div class="list-stat-detail">
                 <span>{ls.mastered} mastered</span>
-                <span>{ls.learned - ls.mastered} learning</span>
-                <span>{ls.total - ls.learned} new</span>
+                <span>{ls.learning - ls.mastered} learning</span>
+                <span>{ls.total - ls.learning} new</span>
               </div>
             </div>
           ))}
@@ -147,7 +147,7 @@ export default function StatisticsView() {
       {/* Legend / Explanations */}
       <div class="section-divider">About These Stats</div>
       <div class="stats-legend">
-        <p><strong>Learned</strong> — characters you have practiced at least once.</p>
+        <p><strong>Learning</strong> — characters you have practiced at least once.</p>
         <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
         <p><strong>Success Rate</strong> — the percentage of correct answers across all your reviews.</p>
       </div>
