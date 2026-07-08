@@ -232,7 +232,6 @@ export default function SettingsView() {
       {/* Graphics */}
       <div class="section-divider">Graphics</div>
       <NumberInput id="setting-canvas-width"  label="Canvas Width (%)"  settingKey="canvas_width"  min={40} max={100} />
-      <Toggle      id="setting-paper-filter"  label="Paper Filter"       settingKey="paper_filter" />
       <Toggle      id="setting-regrade-icon"  label="Show Regrading Icon" settingKey="show_regrading_icon" />
 
       {/* Scheduling */}
