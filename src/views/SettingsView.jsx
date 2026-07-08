@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useCallback, useRef, useEffect } from 'preact/hooks';
+import { useCallback, useRef, useEffect, useState } from 'preact/hooks';
 import localforage from 'localforage';
 import { Settings } from '/client/model/settings';
 import { useReactive } from '../hooks/useReactive';
@@ -90,6 +90,7 @@ const charsets = [
 ];
 
 export default function SettingsView() {
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const doBackup = useCallback(async () => {
     try {
       const keys = await localforage.keys();
@@ -148,11 +149,12 @@ export default function SettingsView() {
   }, []);
 
   const doCheckUpdate = useCallback(async () => {
-    if (!('serviceWorker' in navigator)) {
-      alert('Service workers are not supported in this browser / context.');
-      return;
-    }
+    setCheckingUpdate(true);
     try {
+      if (!('serviceWorker' in navigator)) {
+        alert('Service workers are not supported in this browser / context.');
+        return;
+      }
       const reg = await navigator.serviceWorker.getRegistration();
       if (!reg || !reg.active) {
         alert('No active service worker found. App may not be installed as a PWA.');
@@ -211,6 +213,8 @@ export default function SettingsView() {
       }
     } catch(e) {
       alert('Update check failed: ' + (e?.message || e));
+    } finally {
+      setCheckingUpdate(false);
     }
   }, []);
 
@@ -246,8 +250,15 @@ export default function SettingsView() {
 
       {/* Updates */}
       <div class="section-divider">Updates</div>
-      <div class="list-item clickable" id="btn-check-update" onClick={doCheckUpdate}>
-        Check for updates
+      <div class="list-item clickable" id="btn-check-update" onClick={checkingUpdate ? undefined : doCheckUpdate}>
+        {checkingUpdate ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Checking for updates
+            <div class="spinner" style={{ margin: 0 }}></div>
+          </span>
+        ) : (
+          'Check for updates'
+        )}
       </div>
 
       {/* Danger */}
