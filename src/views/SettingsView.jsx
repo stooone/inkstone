@@ -237,7 +237,7 @@ export default function SettingsView() {
       {/* Scheduling */}
       <div class="section-divider">Scheduling</div>
       <NumberInput id="setting-max-adds"    label="New Cards Per Day"  settingKey="max_adds"    min={0} max={200} />
-      <NumberInput id="setting-max-reviews" label="Reviews Per Day"    settingKey="max_reviews"  min={0} max={500} />
+      <NumberInput id="setting-max-reviews" label="Maximum Reviews Per Day"    settingKey="max_reviews"  min={0} max={500} />
       <Toggle      id="setting-revisit"     label="Revisit Failures"  settingKey="revisit_failures" />
 
       {/* Writing */}
