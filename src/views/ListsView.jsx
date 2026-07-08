@@ -395,6 +395,28 @@ export default function ListsView() {
     setAllLists(Lists.getAllLists());
   }, []);
 
+  // Listen for back navigation so Android's back button goes back to the
+  // main lists view instead of leaving the page.
+  useEffect(() => {
+    const onPopState = () => {
+      if (subview !== null) {
+        setSubview(null);
+        refreshLists();
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [subview, refreshLists]);
+
+  const goToSubview = useCallback((view) => {
+    history.pushState({ route: 'lists', subview: view }, '', '');
+    setSubview(view);
+  }, []);
+
+  const goBackFromSubview = useCallback(() => {
+    history.back();
+  }, []);
+
   const doImport = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -425,13 +447,10 @@ export default function ListsView() {
   }, []);
 
   if (subview === 'blacklist') {
-    return <BlacklistView onBack={() => setSubview(null)} />;
+    return <BlacklistView onBack={goBackFromSubview} />;
   }
   if (subview === 'addword') {
-    return <AddWordView listKey="manually" onBack={() => {
-      setSubview(null);
-      refreshLists();
-    }} />;
+    return <AddWordView listKey="manually" onBack={goBackFromSubview} />;
   }
 
   return (
@@ -441,7 +460,7 @@ export default function ListsView() {
       <div class="list-item clickable" id="btn-import-list" onClick={doImport}>
         Import a word list
       </div>
-      <div class="list-item clickable" id="btn-manage-blacklist" onClick={() => setSubview('blacklist')}>
+      <div class="list-item clickable" id="btn-manage-blacklist" onClick={() => goToSubview('blacklist')}>
         Manage blacklist
       </div>
 
@@ -457,7 +476,7 @@ export default function ListsView() {
                 listKey={list.id}
                 isCustom={!kStaticLists.includes(list.id)}
                 onDelete={refreshLists}
-                onAddWord={list.id === 'manually' ? () => setSubview('addword') : null}
+                onAddWord={list.id === 'manually' ? () => goToSubview('addword') : null}
               />
           ))}
         </div>
