@@ -1222,6 +1222,16 @@ html, body {
   margin-bottom: 16px;
 }
 
+.add-word-info {
+  background: rgba(41, 128, 185, 0.08);
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
 .add-word-submit {
   width: 100%;
   background: var(--accent);

@@ -330,6 +330,9 @@ function AddWordView({ listKey, onBack }) {
       </div>
       <div class="add-word-body">
         {error && <div class="add-word-error">{error}</div>}
+        <div class="add-word-info">
+          Pinyin and definition are needed for every entry. Simplified or Traditional can be left empty, but if the field matching your Character Set setting (Settings → Writing → Character Set) is empty, the word won't be displayed during study. You can change the setting later.
+        </div>
         <div class="modal-field">
           <label>Simplified</label>
           <input
