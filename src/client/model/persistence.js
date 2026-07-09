@@ -14,16 +14,20 @@ const clearTables = (tables, callback) => {
   
   Tracker.afterFlush(() => {
     setTimeout(async () => {
-      // Clear backing stores in localForage
-      for (const table of tables) {
-        const prefix = `table.${table}.`;
-        const keys = await localforage.keys();
-        const tableKeys = keys.filter((key) => key.startsWith(prefix));
-        for (const key of tableKeys) {
-          await localforage.removeItem(key);
+      try {
+        // Clear backing stores in localForage
+        for (const table of tables) {
+          const prefix = `table.${table}.`;
+          const keys = await localforage.keys();
+          const tableKeys = keys.filter((key) => key.startsWith(prefix));
+          for (const key of tableKeys) {
+            await localforage.removeItem(key);
+          }
         }
+        if (callback) callback();
+      } catch (err) {
+        console.error('Error clearing tables:', err);
       }
-      if (callback) callback();
       window.location.reload();
     });
   });
@@ -33,17 +37,21 @@ const mockPersistenceLayer = async (replacement) => {
   // replacement is a mock key-value object
   Tracker.flush();
   
-  // Clear localforage
-  await localforage.clear();
-  
-  // Populate replacement values into localforage
-  for (const key of Object.keys(replacement)) {
-    await localforage.setItem(key, JSON.parse(replacement[key]));
-  }
-  
-  // Reload all models
-  for (const key of Object.keys(registry)) {
-    await registry[key]._load();
+  try {
+    // Clear localforage
+    await localforage.clear();
+    
+    // Populate replacement values into localforage
+    for (const key of Object.keys(replacement)) {
+      await localforage.setItem(key, JSON.parse(replacement[key]));
+    }
+    
+    // Reload all models
+    for (const key of Object.keys(registry)) {
+      await registry[key]._load();
+    }
+  } catch (err) {
+    console.error('Error in mockPersistenceLayer:', err);
   }
 }
 
@@ -117,16 +125,33 @@ class PersistentDict {
     setTimeout(async () => {
       const dirtyKeys = Object.keys(this._dirty);
       if (dirtyKeys.length === 0) return;
-      
+
+      const failedKeys = [];
       for (const key of dirtyKeys) {
         const id = `table.${this._name}.${key}`;
-        if (this._cache.hasOwnProperty(key)) {
-          await localforage.setItem(id, this._cache[key]);
-        } else {
-          await localforage.removeItem(id);
+        try {
+          if (this._cache.hasOwnProperty(key)) {
+            await localforage.setItem(id, this._cache[key]);
+          } else {
+            await localforage.removeItem(id);
+          }
+        } catch (err) {
+          console.error(`Error persisting key "${key}" for table "${this._name}":`, err);
+          failedKeys.push(key);
         }
       }
-      this._dirty = {};
+
+      // Only clear dirty keys that were successfully saved.
+      // Keys that failed will be retried on the next _save() cycle.
+      if (failedKeys.length === dirtyKeys.length) {
+        // All keys failed — keep the entire dirty set for retry
+        return;
+      }
+      for (const key of dirtyKeys) {
+        if (!failedKeys.includes(key)) {
+          delete this._dirty[key];
+        }
+      }
     });
   }
 }
