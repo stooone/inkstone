@@ -144,7 +144,13 @@ class PersistentDict {
       // Only clear dirty keys that were successfully saved.
       // Keys that failed will be retried on the next _save() cycle.
       if (failedKeys.length === dirtyKeys.length) {
-        // All keys failed — keep the entire dirty set for retry
+        // All keys failed — keep the entire dirty set for retry.
+        // Surface a storage error to the user if the underlying store is unavailable.
+        if (dirtyKeys.length > 0 && typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('inkstone-storage-error', {
+            detail: { table: this._name, keyCount: dirtyKeys.length }
+          }));
+        }
         return;
       }
       for (const key of dirtyKeys) {

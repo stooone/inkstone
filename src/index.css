@@ -77,6 +77,21 @@ html, body {
   position: relative;
 }
 
+/* ── Storage warning banner ── */
+.storage-warning-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  padding: 10px 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  background: var(--red);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  cursor: pointer;
+}
+
 /* ── Header ── */
 .app-header {
   position: fixed;

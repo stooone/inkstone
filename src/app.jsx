@@ -38,11 +38,24 @@ export function App() {
     return !localStorage.getItem('inkstone_welcome_seen');
   });
 
+  // Track storage health: warn user if data can't be saved
+  const [storageWarning, setStorageWarning] = useState(null);
+
   // Keep a ref to the current route so navigate's callback always has the latest value
   const routeRef = useRef(route);
   routeRef.current = route;
 
   const remainder  = useReactive(() => Timing.getRemainder(), []);
+
+  // Listen for storage persistence failures and surface them to the user
+  useEffect(() => {
+    const onStorageError = (e) => {
+      const { table, keyCount } = e.detail;
+      setStorageWarning(`Failed to save ${keyCount} item(s) to table "${table}". Your progress may not be saved. Check that your browser has storage space available.`);
+    };
+    window.addEventListener('inkstone-storage-error', onStorageError);
+    return () => window.removeEventListener('inkstone-storage-error', onStorageError);
+  }, []);
 
   // Hash-based answer panel
   useEffect(() => {
@@ -155,6 +168,11 @@ export function App() {
 
   return (
     <>
+      {storageWarning && (
+        <div class="storage-warning-banner" id="storage-warning" onClick={() => setStorageWarning(null)}>
+          ⚠️ {storageWarning} (tap to dismiss)
+        </div>
+      )}
       <header class="app-header">
         <div class="header-left">
           {showBack && (
