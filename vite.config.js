@@ -14,7 +14,7 @@ export default defineConfig({
     preact(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'fonts/*', 'graphics/*'],
+      includeAssets: ['favicon.svg', 'fonts/*', 'graphics/*'],
       manifest: {
         name: 'Inkstone',
         short_name: 'Inkstone',
