@@ -434,7 +434,7 @@ export default function ListsView() {
         const text = await file.text();
         const rows = JSON.parse(text);
         const id = `custom.${Date.now()}`;
-        const { writeList } = await import('/client/assets');
+        // writeList is already imported statically at the top of the module
         await writeList(id, rows);
         Lists.addList(id, { category, name });
         setAllLists(Lists.getAllLists());
