@@ -4,45 +4,53 @@ import { Lists } from '/client/model/lists';
 import { useReactive } from '../hooks/useReactive';
 
 function computeStats() {
-  // Access all active vocabulary entries via the Vocabulary's internal cache
-  // We need to trigger reactivity by depending on the vocabulary
-  const allItems = Vocabulary.getAllItems ? Vocabulary.getAllItems() : [];
+  try {
+    // Access all active vocabulary entries via the Vocabulary's internal cache
+    // We need to trigger reactivity by depending on the vocabulary
+    const allItems = Vocabulary.getAllItems ? Vocabulary.getAllItems() : [];
 
-  const total = allItems.length;
-  const learning = allItems.filter(e => e.attempts > 0);
-  const new_ = allItems.filter(e => e.attempts === 0);
-  // Mastered: at least 5 attempts and success rate >= 80%
-  const mastered = learning.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8);
+    const total = allItems.length;
+    const learning = allItems.filter(e => e && e.attempts > 0);
+    const new_ = allItems.filter(e => e && e.attempts === 0);
+    // Mastered: at least 5 attempts and success rate >= 80%
+    const mastered = learning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8);
 
-  // Compute overall success rate
-  const totalAttempts = learning.reduce((sum, e) => sum + e.attempts, 0);
-  const totalSuccesses = learning.reduce((sum, e) => sum + e.successes, 0);
-  const overallRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+    // Compute overall success rate
+    const totalAttempts = learning.reduce((sum, e) => sum + (e.attempts || 0), 0);
+    const totalSuccesses = learning.reduce((sum, e) => sum + (e.successes || 0), 0);
+    const overallRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
 
-  // By list
-  const enabledLists = Lists.getEnabledLists();
-  const listStats = {};
-  Object.keys(enabledLists).forEach(listKey => {
-    const listItems = allItems.filter(e => e.lists && e.lists.includes(listKey));
-    const listLearning = listItems.filter(e => e.attempts > 0);
-    listStats[listKey] = {
-      name: enabledLists[listKey].name,
-      total: listItems.length,
-      learning: listLearning.length,
-      mastered: listLearning.filter(e => e.attempts >= 5 && (e.successes / e.attempts) >= 0.8).length,
+    // By list
+    const enabledLists = Lists.getEnabledLists();
+    const listStats = {};
+    Object.keys(enabledLists).forEach(listKey => {
+      const listItems = allItems.filter(e => e && e.lists && e.lists.includes(listKey));
+      const listLearning = listItems.filter(e => e.attempts > 0);
+      listStats[listKey] = {
+        name: enabledLists[listKey].name,
+        total: listItems.length,
+        learning: listLearning.length,
+        mastered: listLearning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8).length,
+      };
+    });
+
+    return {
+      total,
+      learning: learning.length,
+      newCount: new_.length,
+      mastered: mastered.length,
+      overallRate,
+      totalAttempts,
+      totalSuccesses,
+      listStats,
     };
-  });
-
-  return {
-    total,
-    learning: learning.length,
-    newCount: new_.length,
-    mastered: mastered.length,
-    overallRate,
-    totalAttempts,
-    totalSuccesses,
-    listStats,
-  };
+  } catch (err) {
+    console.error('Failed to compute stats:', err);
+    return {
+      total: 0, learning: 0, newCount: 0, mastered: 0,
+      overallRate: 0, totalAttempts: 0, totalSuccesses: 0, listStats: {},
+    };
+  }
 }
 
 function StatCard({ label, value, color }) {
