@@ -113,6 +113,13 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
   // Item state (mutable, not reactive state – mutated in callbacks)
   const itemRef = useRef({ card: null, index: 0, tasks: [] });
 
+  // Safe accessor for the current task – returns null if index is out of bounds
+  const getCurrentTask = useCallback(() => {
+    const item = itemRef.current;
+    if (item.index < 0 || item.index >= item.tasks.length) return null;
+    return item.tasks[item.index];
+  }, []);
+
   // Rote review state
   const roteRef = useRef({
     queue: [],        // shuffled array of word items
@@ -224,22 +231,23 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
 
   const onClick = useCallback(() => {
     if (maybeAdvance()) return;
-    const task = itemRef.current.tasks[itemRef.current.index];
+    const task = getCurrentTask();
+    if (!task) return;
     task.penalties += kMaxPenalties;
     hwRef.current?.flash(task.strokes[task.missing[0]]);
-  }, [maybeAdvance]);
+  }, [maybeAdvance, getCurrentTask]);
 
   const onDouble = useCallback(() => {
     if (maybeAdvance()) return;
-    const task = itemRef.current.tasks[itemRef.current.index];
+    const task = getCurrentTask();
+    if (!task) return;
     if (task.penalties < kMaxPenalties) return;
     hwRef.current?.reveal(task.strokes);
     hwRef.current?.highlight(task.strokes[task.missing[0]]);
-  }, [maybeAdvance]);
+  }, [maybeAdvance, getCurrentTask]);
 
   const onRequestRegrade = useCallback((stroke) => {
-    const item = itemRef.current;
-    const task = item.tasks[item.index];
+    const task = getCurrentTask();
     if (!task || task.missing.length > 0 || task.result === null) return false;
     const n = stroke.length;
     if (stroke[0][1] - stroke[n - 1][1] < Math.abs(stroke[0][0] - stroke[n - 1][0])) {
@@ -249,12 +257,12 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     hwRef.current?.glow(null);
     setH({ grading: true });
     return true;
-  }, []);
+  }, [getCurrentTask]);
 
   const onStroke = useCallback((stroke) => {
     if (onRequestRegrade(stroke) || maybeAdvance()) return;
-    const item = itemRef.current;
-    const task = item.tasks[item.index];
+    const task = getCurrentTask();
+    if (!task) return;
     const result = task.matcher.match(stroke, task.missing);
     task.recording.push({ indices: result.indices, stroke });
 
@@ -299,18 +307,17 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
       task.mistakes = 0;
       hwRef.current?.highlight(task.strokes[task.missing[0]]);
     }
-  }, [maybeAdvance, onRequestRegrade]);
+  }, [maybeAdvance, onRequestRegrade, getCurrentTask]);
 
   const onRegrade = useCallback((result) => {
-    const item = itemRef.current;
-    const task = item.tasks[item.index];
+    const task = getCurrentTask();
     if (!task || task.missing.length > 0 || task.result !== null) return;
     task.result = result;
     hwRef.current?.glow(task.result);
     hwRef.current?._stage?.update();
     setH({ grading: false });
     maybeAdvance();
-  }, [maybeAdvance]);
+  }, [maybeAdvance, getCurrentTask]);
 
   // ------------------------------------------------------------------
   // Update item when card changes
@@ -518,11 +525,11 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
   // ------------------------------------------------------------------
   const onPeek = useCallback(() => {
     if (maybeAdvance()) return;
-    const task = itemRef.current.tasks[itemRef.current.index];
+    const task = getCurrentTask();
     if (!task) return;
     task.penalties += kMaxPenalties;
     hwRef.current?.peek(task.strokes);
-  }, [maybeAdvance]);
+  }, [maybeAdvance, getCurrentTask]);
 
   // Rote tick counter to force card reloads
   const [roteTick, setRoteTick] = useState(0);
