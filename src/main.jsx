@@ -1,4 +1,4 @@
-import '/lib/base';  // Sets Date.timestamp and String.prototype.hash
+import { timestamp, hashString } from '/lib/base';
 import { render } from 'preact';
 import './index.css';
 import { App } from './app.jsx';

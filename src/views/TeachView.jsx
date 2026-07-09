@@ -7,6 +7,7 @@ import { Vocabulary } from '/client/model/vocabulary';
 import { Handwriting } from '/client/handwriting';
 import { readItem } from '/client/assets';
 import { Matcher } from '/lib/matcher/matcher';
+import { timestamp } from '/lib/base';
 
 const kMaxMistakes  = 3;
 const kMaxPenalties = 4;
@@ -163,7 +164,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     const item = r.queue[r.queueIndex];
     r.repeatCount += 1;
     r.currentWord = item;
-    return { data: item, deck: 'rote', ts: Date.timestamp() };
+    return { data: item, deck: 'rote', ts: timestamp() };
   }, [buildRoteQueue]);
 
   // ------------------------------------------------------------------
@@ -345,7 +346,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
         error: null, options: null,
         grading: false, complete: false, loadError: null,
       });
-      updateItem({ data: r.currentWord, deck: 'rote', ts: Date.timestamp() }, data);
+      updateItem({ data: r.currentWord, deck: 'rote', ts: timestamp() }, data);
     } else {
       const c = Timing.getNextCard();
       if (!c || data.word !== c.data.word) return;

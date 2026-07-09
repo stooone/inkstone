@@ -2,7 +2,7 @@ import { PersistentVar } from '/client/model/persistence';
 import { Lists } from '/client/model/lists';
 import { Settings } from '/client/model/settings';
 import { Vocabulary } from '/client/model/vocabulary';
-import { assert } from '/lib/base';
+import { assert, timestamp } from '/lib/base';
 import { Tracker, ReactiveVar, Meteor } from '/src/store/meteor-mock';
 
 const getTodayMidnight = () => {
@@ -35,7 +35,7 @@ const remainder = new ReactiveVar();
 const time_left = new ReactiveVar();
 
 const tick = () => {
-  const now = Date.timestamp();
+  const now = timestamp();
   const counts = timing.get();
   const todayMidnight = getTodayMidnight();
   const nextMidnight = todayMidnight + 86400;
@@ -183,7 +183,7 @@ const completeCard = (card, result) => {
   if (card.deck === 'failures') {
     Vocabulary.clearFailed(card.data);
   } else {
-    Vocabulary.updateItem(card.data, result, Date.timestamp());
+    Vocabulary.updateItem(card.data, result, timestamp());
   }
 }
 

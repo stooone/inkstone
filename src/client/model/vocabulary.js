@@ -1,6 +1,7 @@
 import { getNextInterval } from '/client/external/inkren/interval_quantifier';
 import { PersistentDict } from '/client/model/persistence';
 import { Tracker } from '/src/store/meteor-mock';
+import { timestamp, hashString } from '/lib/base';
 
 const kNumChunks = 16;
 
@@ -30,11 +31,11 @@ const onload = (value) => {
 const cache = {active: [], blacklist: {}, chunks: [], index: {}};
 const vocabulary = new PersistentDict('vocabulary', onload);
 
-const chunk = (word) => cache.chunks[Math.abs(word.hash()) % kNumChunks];
+const chunk = (word) => cache.chunks[Math.abs(hashString(word)) % kNumChunks];
 
 const dirty = (word) => {
   const keys = word
-    ? [Math.abs(word.hash()) % kNumChunks]
+    ? [Math.abs(hashString(word)) % kNumChunks]
     : Array.from({length: kNumChunks}, (_, i) => i);
   keys.forEach((key) => vocabulary.set(key, cache.chunks[key]));
 }
@@ -166,7 +167,7 @@ class Vocabulary {
     return new Cursor((entry) => entry[kIndices.attempts] === 0, true);
   }
   static getRoteReviewItems() {
-    const now = Date.timestamp();
+    const now = timestamp();
     const fiveDays = now + 5 * 86400;
     return new Cursor((entry) => {
       return entry[kIndices.attempts] > 0 && entry[kIndices.next] < fiveDays;

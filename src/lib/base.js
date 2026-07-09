@@ -18,16 +18,16 @@ const fetchUrl = (url) => {
 }
 
 // Returns a Unix timestamp (the time, in seconds, since January 1st, 1970).
-Date.timestamp = () => Math.floor(Date.now() / 1000);
+const timestamp = () => Math.floor(Date.now() / 1000);
 
 // Returns a hash of the given string equal to Java's String hash.
-String.prototype.hash = function() {
+const hashString = (str) => {
   let result = 0;
-  for (let i = 0; i < this.length; i++) {
-    result = (result << 5) - result + this.charCodeAt(i);
+  for (let i = 0; i < str.length; i++) {
+    result = (result << 5) - result + str.charCodeAt(i);
     result = result & result;
   }
   return result;
 }
 
-export { kHomePage, assert, fetchUrl };
+export { kHomePage, assert, fetchUrl, timestamp, hashString };
