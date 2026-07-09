@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stooone/inkstone.git"
+  },
   "engines": {
     "node": ">=18"
   },
