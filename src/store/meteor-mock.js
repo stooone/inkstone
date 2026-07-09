@@ -24,10 +24,13 @@ class Computation {
   constructor(f) {
     this.f = f;
     this.invalidated = false;
+    this.stopped = false;
     this.invalidatedCallbacks = [];
+    this._pendingTimer = null;
     this.run();
   }
   run() {
+    if (this.stopped) return;
     this.invalidated = false;
     const previous = activeComputation;
     activeComputation = this;
@@ -37,15 +40,24 @@ class Computation {
       activeComputation = previous;
     }
   }
+  stop() {
+    this.stopped = true;
+    this.invalidated = true;
+    this.invalidatedCallbacks = [];
+    if (this._pendingTimer !== null) {
+      clearTimeout(this._pendingTimer);
+      this._pendingTimer = null;
+    }
+  }
   onInvalidate(callback) {
     this.invalidatedCallbacks.push(callback);
   }
   invalidate() {
-    if (this.invalidated) return;
+    if (this.invalidated || this.stopped) return;
     this.invalidated = true;
     this.invalidatedCallbacks.forEach((cb) => cb());
     this.invalidatedCallbacks = [];
-    setTimeout(() => this.run(), 0);
+    this._pendingTimer = setTimeout(() => this.run(), 0);
   }
 }
 
