@@ -12,10 +12,6 @@ let onAssetsLoaded = null;
 const kLoaded = new Promise((resolve, _) => onAssetsLoaded = resolve);
 
 const base64 = {
-  decode: (uri) => {
-    const d = (ch) => '%' + ('00' + ch.charCodeAt(0).toString(16)).slice(-2);
-    return decodeURIComponent(Array.from(atob(uri)).map(d).join(''));
-  },
   encode: (data) => {
     return btoa(encodeURIComponent(data).replace(
         /%([0-9A-F]{2})/g, (match, x) => String.fromCharCode('0x' + x)));

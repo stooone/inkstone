@@ -1,4 +1,3 @@
-import { timestamp, hashString } from '/lib/base';
 import { render, Component } from 'preact';
 import './index.css';
 import { App } from './app.jsx';
