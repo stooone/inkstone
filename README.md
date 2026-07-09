@@ -1,4 +1,4 @@
-![Inkstone in action](http://i.imgur.com/FetiXVc.gif)
+![Inkstone in action](./inkstone-in-action.gif)
 
 ### Introduction
 
