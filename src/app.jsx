@@ -62,8 +62,14 @@ export function App() {
     const onHash = () => {
       const hash = window.location.hash.slice(1);
       if (hash) {
-        const ch = String.fromCodePoint(parseInt(hash, 10));
-        setAnswerChar(ch);
+        const cp = parseInt(hash, 10);
+        // Validate: must be a finite integer within the valid Unicode code point range
+        if (Number.isFinite(cp) && cp >= 0 && cp <= 0x10FFFF) {
+          setAnswerChar(String.fromCodePoint(cp));
+        } else {
+          // Invalid code point — clear the hash to avoid repeated bad state
+          window.location.hash = '';
+        }
       } else {
         setAnswerChar(null);
       }
