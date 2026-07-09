@@ -433,9 +433,66 @@ export default function ListsView() {
       try {
         const text = await file.text();
         const rows = JSON.parse(text);
+
+        // Validate that rows is a non-empty array
+        if (!Array.isArray(rows) || rows.length === 0) {
+          throw new Error('Imported data must be a non-empty array of word objects.');
+        }
+
+        // Validate each row has the required fields
+        const requiredFields = ['simplified', 'traditional', 'pinyin', 'definition'];
+        const validRows = [];
+        const skippedRows = [];
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || typeof row !== 'object') {
+            skippedRows.push({ index: i, reason: 'not an object' });
+            continue;
+          }
+          // Must have at least simplified or traditional
+          if (!row.simplified && !row.traditional) {
+            skippedRows.push({ index: i, reason: 'missing simplified and traditional' });
+            continue;
+          }
+          // Must have pinyin and definition
+          if (!row.pinyin || !row.definition) {
+            skippedRows.push({ index: i, reason: 'missing pinyin or definition' });
+            continue;
+          }
+          // Validate character fields contain only printable characters (no tabs, control chars)
+          const charFields = ['simplified', 'traditional'];
+          let hasInvalidChars = false;
+          for (const field of charFields) {
+            if (row[field] && typeof row[field] === 'string') {
+              if (/[\t\r\n]/.test(row[field]) || /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(row[field])) {
+                skippedRows.push({ index: i, reason: `${field} contains invalid characters` });
+                hasInvalidChars = true;
+                break;
+              }
+            }
+          }
+          if (hasInvalidChars) continue;
+          // Ensure string fields are strings
+          validRows.push({
+            simplified: row.simplified || '',
+            traditional: row.traditional || '',
+            pinyin: String(row.pinyin || ''),
+            definition: String(row.definition || ''),
+            numbered: row.numbered ? String(row.numbered) : '',
+          });
+        }
+
+        if (validRows.length === 0) {
+          throw new Error('No valid rows found in the imported file.');
+        }
+
+        if (skippedRows.length > 0) {
+          const msg = `Imported ${validRows.length} row(s). ${skippedRows.length} row(s) were skipped (${skippedRows.map(s => `row ${s.index + 1}: ${s.reason}`).join('; ')}).`;
+          if (!confirm(`${msg}\n\nContinue with the ${validRows.length} valid row(s)?`)) return;
+        }
+
         const id = `custom.${Date.now()}`;
-        // writeList is already imported statically at the top of the module
-        await writeList(id, rows);
+        await writeList(id, validRows);
         Lists.addList(id, { category, name });
         setAllLists(Lists.getAllLists());
       } catch(err) {
