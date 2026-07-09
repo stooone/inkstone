@@ -139,11 +139,11 @@ export default function SettingsView() {
     input.click();
   }, []);
 
-  const doClearProgress = useCallback(() => {
+  const doClearProgress = useCallback(async () => {
     const code = Math.random().toString(36).slice(2, 7).toUpperCase();
     const answer = prompt(`This cannot be undone. Type "${code}" to confirm:`);
     if (answer === code) {
-      localStorage.clear();
+      await localforage.clear();
       location.reload();
     }
   }, []);

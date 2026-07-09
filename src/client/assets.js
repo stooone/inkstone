@@ -288,7 +288,10 @@ const kCharacters = readAsset('characters.txt').then((data) => {
     characters[line] = (characters[line] || 0) + 1;
   }
   return characters;
-}).catch((error) => console.error(error));
+}).catch((error) => {
+  console.error('Failed to load characters.txt:', error);
+  throw new Error(`Failed to load character data: ${error.message}`);
+});
 
 const kRadicals = readAsset('radicals.json')
     .then((data) => JSON.parse(data).radical_to_index_map)
