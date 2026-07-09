@@ -37,7 +37,7 @@ export default function AssetsView({ onComplete }) {
           missingItems.push({ asset: asset, version: targets[asset] });
         }
       }
-      missingItems.sort((a, b) => a.asset < b.asset);
+      missingItems.sort((a, b) => a.asset.localeCompare(b.asset));
 
       if (missingItems.length === 0) {
         onComplete();
