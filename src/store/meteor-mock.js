@@ -141,14 +141,146 @@ export const Meteor = {
   isServer: false
 };
 
-// Mock check / Match framework from Meteor check package.
-export const check = (value, pattern) => {
-  return true; // No-op type safety check for porting compatibility.
+// Proper check/match implementation for type safety
+
+class MatchError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'Match.Error';
+    this.sanitizedError = new Error('Match failed');
+    this.sanitizedError.name = 'Match.Error';
+  }
+}
+
+const Where = class Where {
+  constructor(f) { this.f = f; }
+};
+
+const Maybe = class Maybe {
+  constructor(pattern) { this.pattern = pattern; }
+};
+
+const OneOf = class OneOf {
+  constructor(patterns) { this.patterns = patterns; }
 };
 
 export const Match = {
-  Where: (f) => f,
-  Maybe: (p) => p,
+  Error: MatchError,
+  Where: (f) => new Where(f),
+  Maybe: (p) => new Maybe(p),
+  OneOf: (...patterns) => new OneOf(patterns),
   Integer: 'integer',
   Object: 'object'
+};
+
+export const check = (value, pattern) => {
+  // Handle primitive type patterns
+  if (pattern === String) {
+    if (typeof value !== 'string') {
+      throw new MatchError(`Expected string, got ${typeof value}`);
+    }
+    return true;
+  }
+  if (pattern === Number) {
+    if (typeof value !== 'number') {
+      throw new MatchError(`Expected number, got ${typeof value}`);
+    }
+    return true;
+  }
+  if (pattern === Object) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new MatchError(`Expected plain object, got ${typeof value}`);
+    }
+    return true;
+  }
+  if (pattern === Boolean) {
+    if (typeof value !== 'boolean') {
+      throw new MatchError(`Expected boolean, got ${typeof value}`);
+    }
+    return true;
+  }
+  if (pattern === undefined || pattern === null) {
+    if (value !== undefined && value !== null) {
+      throw new MatchError(`Expected undefined/null, got ${typeof value}`);
+    }
+    return true;
+  }
+
+  // Handle Match.Integer
+  if (pattern === Match.Integer) {
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      throw new MatchError(`Expected integer, got ${value}`);
+    }
+    return true;
+  }
+
+  // Handle Match.Object (plain object, not array/null)
+  if (pattern === Match.Object) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new MatchError(`Expected plain object, got ${typeof value}`);
+    }
+    return true;
+  }
+
+  // Handle Match.Where custom validator
+  if (pattern instanceof Where) {
+    try {
+      const result = pattern.f(value);
+      if (!result) {
+        throw new MatchError('Match.Where validation failed');
+      }
+      return true;
+    } catch (e) {
+      if (e instanceof MatchError) throw e;
+      throw new MatchError('Match.Where validation failed');
+    }
+  }
+
+  // Handle Match.Maybe (optional value)
+  if (pattern instanceof Maybe) {
+    if (value !== undefined) {
+      return check(value, pattern.pattern);
+    }
+    return true;
+  }
+
+  // Handle Match.OneOf (union type)
+  if (pattern instanceof OneOf) {
+    for (const p of pattern.patterns) {
+      try {
+        return check(value, p);
+      } catch (e) {
+        // Try next pattern
+      }
+    }
+    throw new MatchError('None of the OneOf patterns matched');
+  }
+
+  // Handle array patterns: [elementPattern]
+  if (Array.isArray(pattern)) {
+    if (!Array.isArray(value)) {
+      throw new MatchError(`Expected array, got ${typeof value}`);
+    }
+    if (pattern.length > 0) {
+      for (const item of value) {
+        check(item, pattern[0]);
+      }
+    }
+    return true;
+  }
+
+  // Handle object patterns (schema validation)
+  if (typeof pattern === 'object' && pattern !== null) {
+    if (typeof value !== 'object' || value === null) {
+      throw new MatchError(`Expected object, got ${typeof value}`);
+    }
+    for (const key of Object.keys(pattern)) {
+      if (key in value) {
+        check(value[key], pattern[key]);
+      }
+    }
+    return true;
+  }
+
+  throw new Error(`Unknown check pattern: ${pattern}`);
 };
