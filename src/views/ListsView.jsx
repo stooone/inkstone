@@ -279,6 +279,14 @@ function AddWordView({ listKey, onBack }) {
   const [definition, setDefinition] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  // Auto-dismiss toast after 2 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const addWord = useCallback(async () => {
     setError('');
@@ -307,6 +315,7 @@ function AddWordView({ listKey, onBack }) {
       setTraditional('');
       setPinyin('');
       setDefinition('');
+      setToast('Word added successfully!');
     } catch(e) {
       setError('Failed to save: ' + (e?.message || e));
     } finally {
@@ -323,6 +332,7 @@ function AddWordView({ listKey, onBack }) {
 
   return (
     <div class="add-word-view">
+      {toast && <div class="add-word-toast">{toast}</div>}
       <div class="add-word-header">
         <button class="btn-back" onClick={onBack}>← Back</button>
         <span class="add-word-title">Add Word</span>
