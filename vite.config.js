@@ -43,6 +43,8 @@ export default defineConfig({
           '**/*.{js,css,html,json,txt,list,ttf,jpg,png,svg}',
           'assets/characters_v2/*'
         ],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/vendor\//],
         maximumFileSizeToCacheInBytes: 25 * 1024 * 1024 // Allow up to 25MB to accommodate the 17MB Chinese font
       }
     })
