@@ -91,7 +91,9 @@ const charsets = [
 
 export default function SettingsView() {
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
   const doBackup = useCallback(async () => {
+    setBackingUp(true);
     try {
       const keys = await localforage.keys();
       const data = {};
@@ -107,6 +109,8 @@ export default function SettingsView() {
       URL.revokeObjectURL(url);
     } catch(e) {
       alert('Backup failed: ' + e.message);
+    } finally {
+      setBackingUp(false);
     }
   }, []);
 
@@ -222,8 +226,15 @@ export default function SettingsView() {
     <div class="settings-list">
       {/* Backups */}
       <div class="section-divider">Backups</div>
-      <div class="list-item clickable" id="btn-backup" onClick={doBackup}>
-        Backup to a file
+      <div class="list-item clickable" id="btn-backup" onClick={backingUp ? undefined : doBackup}>
+        {backingUp ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Creating backup
+            <div class="spinner" style={{ margin: 0 }}></div>
+          </span>
+        ) : (
+          'Backup to a file'
+        )}
       </div>
       <div class="list-item clickable" id="btn-restore" onClick={doRestore}>
         Restore from a file
