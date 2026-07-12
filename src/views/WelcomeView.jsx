@@ -23,7 +23,7 @@ export default function WelcomeView({ onDismiss }) {
             <div class="welcome-mode-icon">🔄</div>
             <h3>Rote Review</h3>
             <p>
-              Repetitive practice — characters repeat 3× with strokes revealed, no SRS impact.
+              Extra practice on problem characters (leeches) — repeats 3× with strokes revealed, no SRS impact.
             </p>
           </div>
         </div>

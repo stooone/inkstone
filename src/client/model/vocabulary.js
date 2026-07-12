@@ -170,10 +170,10 @@ class Vocabulary {
     const now = timestamp();
     const threeDays = now + 3 * 86400;
     return new Cursor((entry) => {
-      // Leeches: items with success rate under 10% and due within 3 days
+      // Leeches: items with success rate under 20% and due within 3 days
       const attempts = entry[kIndices.attempts];
       const successes = entry[kIndices.successes];
-      return attempts > 0 && successes / attempts < 0.10 && entry[kIndices.next] < threeDays;
+      return attempts > 0 && successes / attempts < 0.20 && entry[kIndices.next] < threeDays;
     });
   }
   static updateBlacklist(item, blacklisted) {

@@ -55,10 +55,11 @@ export default function HelpView() {
 
       <h2>Rote Review</h2>
       <p>
-        Tap <strong>Rote Review</strong> on the home screen for repetitive writing practice.
-        This mode shows random characters you've already started learning (due within 5 days).
-        Each character is automatically revealed and repeated 3 times — like writing it on paper
-        over and over. No spaced repetition updates occur, so your SRS schedule is unaffected.
+        Tap <strong>Rote Review</strong> for extra practice on your <em>leeches</em> —
+        characters you consistently struggle with (success rate below 20%) that are due
+        within the next 3 days. Each character is automatically revealed and repeated
+        3 times, like writing it on paper over and over. No spaced repetition updates
+        occur, so your SRS schedule is unaffected.
       </p>
       <p>
         Use the <strong>⏭ Skip</strong> button to move to the next character at any time.
