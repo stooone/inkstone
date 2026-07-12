@@ -429,10 +429,9 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
   }, [card, roteMode]);
 
   // ------------------------------------------------------------------
-  // Canvas size
+  // Canvas size – set via CSS custom property so the CSS can use min() for responsive sizing
   // ------------------------------------------------------------------
   const canvasWidth = Settings.get('canvas_width');
-  const margin = Math.max(Math.min(Math.floor((100 - canvasWidth) / 2), 50), 0);
 
   const showRegradeIcon = !roteMode && Settings.get('show_regrading_icon') && helpers.complete;
 
@@ -620,7 +619,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
         ) : (
           <div
             class="teach-canvas-inner"
-            style={{ width: `${canvasWidth}%` }}
+            style={{ '--canvas-width': `${canvasWidth}%` }}
           >
             <div ref={canvasWrapRef} id="teach-canvas" style={{ width: '100%', height: '100%', position: 'relative' }} />
 

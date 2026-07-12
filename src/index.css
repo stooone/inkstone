@@ -531,8 +531,9 @@ html, body {
   box-shadow: var(--shadow);
   margin: 0 auto;
   aspect-ratio: 1 / 1;
+  width: min(var(--canvas-width, 90%), calc(100dvh - var(--header-h) - 150px));
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100dvh - var(--header-h) - 150px);
 }
 
 /* The actual <canvas> element is sized square by JS; give it the paper
