@@ -1045,38 +1045,107 @@ html, body {
   padding: 8px 12px 40px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.stats-circles-bracket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 16px;
 }
 
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  border-left: 3px solid var(--accent);
-  padding: 14px 12px;
-  text-align: center;
-  transition: background .1s;
+.stats-circle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
 }
 
-.stat-value {
-  font-size: 24px;
+.stat-circle-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+
+.stat-circle-value {
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
-  line-height: 1.2;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.stat-label {
-  font-size: 11px;
-  font-weight: 500;
+.stat-circle-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+
+.stat-circle-connector {
+  width: 24px;
+  height: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 4px;
+  align-self: center;
+  margin-bottom: 22px;
+}
+
+.stats-bracket {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.stats-bracket::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 20px;
+  border-left: 2px solid var(--border);
+}
+
+.stats-bracket::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  height: 0;
+  border-top: 2px solid var(--border);
+}
+
+.stats-bracket-total {
+  margin-top: 38px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .4px;
-  margin-top: 4px;
+  background: var(--bg);
+  padding: 2px 12px;
+  position: relative;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stats-overall-progress {

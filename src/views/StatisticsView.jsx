@@ -47,11 +47,10 @@ function computeStats() {
   }
 }
 
-function StatCard({ label, value, color }) {
+function CircleStat({ value, color }) {
   return (
-    <div class="stat-card" style={color ? { borderLeftColor: color } : undefined}>
-      <div class="stat-value">{value}</div>
-      <div class="stat-label">{label}</div>
+    <div class="stat-circle" style={{ borderColor: color }}>
+      <span class="stat-circle-value">{value}</span>
     </div>
   );
 }
@@ -89,25 +88,29 @@ export default function StatisticsView() {
 
   return (
     <div class="stats-view">
-      {/* Overview cards */}
+      {/* Circle-dash-circle stat indicators */}
       <div class="section-divider">Overview</div>
-      <div class="stats-grid">
-        <StatCard label="Total Characters" value={stats.total} color="var(--blue)" />
-        <StatCard label="Learning" value={stats.learning} color="var(--green)" />
-        <StatCard label="Mastered" value={stats.mastered} color="var(--purple)" />
-        <StatCard label="New" value={stats.newCount} color="var(--ink-muted)" />
-      </div>
-
-      {/* Overall progress bar */}
-      {stats.total > 0 && (
-        <div class="stats-overall-progress">
-          <div class="stat-progress-label">
-            <span>Overall Progress</span>
-            <span>{stats.learning} / {stats.total} ({Math.round((stats.learning / stats.total) * 100)}%)</span>
+      <div class="stats-circles-bracket">
+        <div class="stats-circle-row">
+          <div class="stat-circle-item">
+            <CircleStat value={stats.newCount} color="var(--ink-muted)" />
+            <span class="stat-circle-label">New</span>
           </div>
-          <SegmentedProgressBar mastered={stats.mastered} learning={stats.learning} total={stats.total} />
+          <div class="stat-circle-connector"></div>
+          <div class="stat-circle-item">
+            <CircleStat value={stats.learning} color="var(--green)" />
+            <span class="stat-circle-label">Learning</span>
+          </div>
+          <div class="stat-circle-connector"></div>
+          <div class="stat-circle-item">
+            <CircleStat value={stats.mastered} color="var(--purple)" />
+            <span class="stat-circle-label">Mastered</span>
+          </div>
         </div>
-      )}
+        <div class="stats-bracket">
+          <div class="stats-bracket-total">{stats.total}</div>
+        </div>
+      </div>
 
       {/* Per-list breakdown */}
       {Object.keys(stats.listStats).length > 0 && (
