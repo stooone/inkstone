@@ -81,7 +81,7 @@ function RoteReviewErrorCard({ onNavigate }) {
     <div class="error-card">
       <h2>No cards available for rote review!</h2>
       <p style="color: var(--text-muted); font-size: 14px;">
-        You need cards you've already started learning with a due date within 5 days.
+        You need leeches — items with a very low success rate ({'<10%'}) due within the next 3 days.
       </p>
       <button
         class="error-option-btn"
