@@ -15,11 +15,7 @@ function computeStats() {
     // Mastered: at least 5 attempts and success rate >= 80%
     const mastered = learning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8);
 
-    // Compute overall success rate
     const totalAttempts = learning.reduce((sum, e) => sum + (e.attempts || 0), 0);
-    const totalSuccesses = learning.reduce((sum, e) => sum + (e.successes || 0), 0);
-    const overallRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
-
     // By list
     const enabledLists = Lists.getEnabledLists();
     const listStats = {};
@@ -39,16 +35,14 @@ function computeStats() {
       learning: learning.length,
       newCount: new_.length,
       mastered: mastered.length,
-      overallRate,
       totalAttempts,
-      totalSuccesses,
       listStats,
     };
   } catch (err) {
     console.error('Failed to compute stats:', err);
     return {
       total: 0, learning: 0, newCount: 0, mastered: 0,
-      overallRate: 0, totalAttempts: 0, totalSuccesses: 0, listStats: {},
+      totalAttempts: 0, listStats: {},
     };
   }
 }
@@ -102,7 +96,6 @@ export default function StatisticsView() {
         <StatCard label="Learning" value={stats.learning} color="var(--green)" />
         <StatCard label="Mastered" value={stats.mastered} color="var(--purple)" />
         <StatCard label="New" value={stats.newCount} color="var(--ink-muted)" />
-        <StatCard label="Success Rate" value={`${stats.overallRate}%`} color="var(--orange)" />
       </div>
 
       {/* Overall progress bar */}
@@ -145,10 +138,6 @@ export default function StatisticsView() {
             <span>Total Reviews</span>
             <span class="stat-number">{stats.totalAttempts}</span>
           </div>
-          <div class="list-item">
-            <span>Total Successes</span>
-            <span class="stat-number">{stats.totalSuccesses}</span>
-          </div>
         </>
       )}
 
@@ -157,7 +146,6 @@ export default function StatisticsView() {
       <div class="stats-legend">
         <p><strong>Learning</strong> — characters you have practiced at least once.</p>
         <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
-        <p><strong>Success Rate</strong> — the percentage of correct answers across all your reviews.</p>
       </div>
     </div>
   );
