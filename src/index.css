@@ -1251,6 +1251,38 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Leeches expanded list ── */
+.leech-words-expanded {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+
+.leech-word-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+
+.leech-word-char {
+  font-family: var(--font-cjk);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--red);
+  flex-shrink: 0;
+}
+
+.leech-word-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Add Word View ── */
 .add-btn {
   background: none;

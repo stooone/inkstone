@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useState } from 'preact/hooks';
 import { Vocabulary } from '/client/model/vocabulary';
 import { Lists } from '/client/model/lists';
 import { useReactive } from '../hooks/useReactive';
@@ -16,6 +17,10 @@ function computeStats() {
     const mastered = learning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8);
 
     const totalAttempts = learning.reduce((sum, e) => sum + (e.attempts || 0), 0);
+    // Leeches: items with success rate < 20% and due within 3 days
+    const leechesCursor = Vocabulary.getRoteReviewItems();
+    const leechesCount = leechesCursor.count();
+    const leechesItems = leechesCursor.fetch();
     // By list
     const enabledLists = Lists.getEnabledLists();
     const listStats = {};
@@ -37,12 +42,15 @@ function computeStats() {
       mastered: mastered.length,
       totalAttempts,
       listStats,
+      leeches: leechesCount,
+      leechesItems,
     };
   } catch (err) {
     console.error('Failed to compute stats:', err);
     return {
       total: 0, learning: 0, newCount: 0, mastered: 0,
       totalAttempts: 0, listStats: {},
+      leeches: 0, leechesItems: [],
     };
   }
 }
@@ -83,8 +91,19 @@ function SegmentedProgressBar({ mastered, learning, total }) {
   );
 }
 
+function LeechListItem({ word, attempts, successes, last, next }) {
+  const rate = attempts > 0 ? Math.round((successes / attempts) * 100) : 0;
+  return (
+    <div class="leech-word-row">
+      <span class="leech-word-char">{word}</span>
+      <span class="leech-word-meta">{rate}% · {successes}/{attempts}</span>
+    </div>
+  );
+}
+
 export default function StatisticsView() {
   const stats = useReactive(computeStats, []);
+  const [leechesOpen, setLeechesOpen] = useState(false);
 
   return (
     <div class="stats-view">
@@ -141,6 +160,28 @@ export default function StatisticsView() {
             <span>Total Reviews</span>
             <span class="stat-number">{stats.totalAttempts}</span>
           </div>
+          {stats.leeches > 0 && (
+            <div class="list-toggle-group">
+              <div class="list-item clickable" onClick={() => setLeechesOpen((v) => !v)}>
+                <span>Leeches <span class="stat-number" style={{ color: "var(--red)" }}>{stats.leeches}</span></span>
+                <span>{leechesOpen ? '▾' : '▸'}</span>
+              </div>
+              {leechesOpen && (
+                <div class="leech-words-expanded">
+                  {stats.leechesItems.map((item, idx) => (
+                    <LeechListItem
+                      key={idx}
+                      word={item.word}
+                      attempts={item.attempts}
+                      successes={item.successes}
+                      last={item.last}
+                      next={item.next}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
