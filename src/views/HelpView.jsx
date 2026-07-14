@@ -131,6 +131,21 @@ export default function HelpView() {
         (configurable in Settings).
       </p>
 
+      <h2>Leeches & Maximum Leeches</h2>
+      <p>
+        <strong>Leeches</strong> are characters that you consistently struggle with —
+        items with a success rate below 20% that are due for review within the next
+        3 days. You can view your current leeches on the <strong>Stats</strong> screen
+        under the <strong>Activity</strong> section.
+      </p>
+      <p>
+        The <strong>Maximum Leeches</strong> setting (in <strong>Settings → Scheduling</strong>)
+        lets you set a cap on how many leeches are acceptable. If the number of leeches
+        reaches or exceeds this limit, no <em>new</em> cards will be introduced,
+        overriding the "New Cards Per Day" setting. This helps you focus on reviewing
+        and improving your problematic characters before adding more to your workload.
+      </p>
+
       <h2>Custom Lists Format</h2>
       <p>
         Custom lists are JSON arrays. Each entry should be an object with at least:

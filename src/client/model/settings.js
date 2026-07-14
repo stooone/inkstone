@@ -7,6 +7,7 @@ const defaults = {
   double_tap_speed: 500,
   max_adds: 20,
   max_reviews: 200,
+  max_leeches: 10,
   reveal_order: true,
   revisit_failures: true,
   show_regrading_icon: true,

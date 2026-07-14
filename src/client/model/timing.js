@@ -155,6 +155,11 @@ Tracker.autorun(() => {
     if (limit <= 0) return 0;
     return Math.min(getters[k](counts.ts).count(), limit);
   });
+  // If leeches exceed the allowed maximum, suppress new cards entirely
+  const maxLeeches = Settings.get('max_leeches');
+  if (maxLeeches > 0 && Vocabulary.getRoteReviewItems().count() >= maxLeeches) {
+    value.adds = 0;
+  }
   const planned = counts.adds + counts.reviews + value.adds + value.reviews;
   if (planned < counts.min_cards) {
     const needed = counts.min_cards - planned;
