@@ -16,6 +16,41 @@ const kRoteRepeats  = 3;
 const getResult = (penalties) => Math.min(Math.floor(2 * penalties / kMaxPenalties) + 1, 3);
 const fixMedian = (median) => median.map((x) => [x[0], 900 - x[1]]);
 
+// Inline SRS interval calculation (no external deps — duplicate of interval_quantifier logic)
+const kOneDay = 24 * 60 * 60;
+const kInitialIntervals = [28 * kOneDay, 7 * kOneDay, kOneDay, 600];
+const kIntervalFactors = [3.5, 2.2, 0.9, 0.25];
+const kRandomFactor = 0.15;
+
+const randomizeInterval = (interval) => {
+  return Math.floor((1 + kRandomFactor * (Math.random() - 0.5)) * interval);
+};
+
+const estimateNextInterval = (item, result, last) => {
+  if (!item.last) {
+    return randomizeInterval(kInitialIntervals[result]);
+  }
+  const actual = last - item.last;
+  const intended = item.next - item.last;
+  const success = result < 3;
+  let factor = kIntervalFactors[result];
+  if (factor > 1) {
+    factor = ((factor - 1) * actual / intended) + 1;
+  }
+  const attempts = item.attempts + 1;
+  const successes = item.successes + (success ? 1 : 0);
+  const correct = successes / attempts;
+  if (attempts < 5 && correct === 1) {
+    factor *= 1.5;
+  }
+  if (attempts > 8 && correct < 0.5) {
+    factor *= Math.pow(correct, 0.7);
+  }
+  const interval = randomizeInterval(factor * intended);
+  const max = (success ? 365 : 7) * kOneDay;
+  return Math.max(Math.min(interval, max), 600);
+};
+
 // -------------------------------------------------------------------
 // ErrorCard
 // -------------------------------------------------------------------
@@ -198,11 +233,40 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
       }
     } else {
       // All characters done
-      transition();
+      // Rote: clear canvas immediately before advancing
+      if (roteMode) {
+        transition();
+        hwRef.current?.clear();
+      }
       maybeRecordResult();
-      hwRef.current?.clear();
     }
     return true;
+  }, []);
+
+  // Toast state for "next due in" message (SRS review only)
+  const [toast, setToast] = useState({ message: null, visible: false });
+  const toastTimerRef = useRef(null);
+
+  const showNextDueToast = useCallback((interval, isLeech) => {
+    let message;
+    if (interval < 3600) {
+      const mins = Math.round(interval / 60);
+      message = `Next due in ${mins} minute${mins !== 1 ? 's' : ''}`;
+    } else if (interval < 86400) {
+      const hours = Math.round(interval / 3600);
+      message = `Next due in ${hours} hour${hours !== 1 ? 's' : ''}`;
+    } else {
+      const days = Math.round(interval / 86400);
+      message = `Next due in ${days} day${days !== 1 ? 's' : ''}`;
+    }
+    if (isLeech) {
+      message = `Leech. ${message}`;
+    }
+    setToast({ message, visible: true });
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
+      setToast({ message: null, visible: false });
+    }, 3000);
   }, []);
 
   const maybeRecordResult = useCallback(() => {
@@ -215,8 +279,18 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
       return;
     }
     const result = item.tasks.reduce((max, t) => Math.max(max, t.result ?? 0), 0);
-    setTimeout(() => Timing.completeCard(card, result), 20);
-  }, [roteMode]);
+    // Check if the word is a leech: >0 attempts, success rate <20%
+    const data = card.data;
+    const isLeech = data.attempts > 0 && data.successes / data.attempts < 0.20;
+    // Calculate next interval and show toast for SRS review mode
+    const interval = estimateNextInterval(data, result, timestamp());
+    showNextDueToast(interval, isLeech);
+    setTimeout(() => {
+      transition();
+      hwRef.current?.clear();
+      Timing.completeCard(card, result);
+    }, 1000);
+  }, [roteMode, showNextDueToast]);
 
   const transition = useCallback(() => {
     // CSS slide animation: re-mount canvas by clearing and re-drawing
@@ -648,6 +722,13 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
         <button id="ctrl-blacklist" class="teach-ctrl" title="Blacklist" onClick={onBlacklist}>✕</button>
         <button id="ctrl-show"      class="teach-ctrl" title="Details"   onClick={onShow}>🔍</button>
       </div>
+
+      {/* Toast notification */}
+      {toast.visible && (
+        <div class="srs-toast" id="srs-toast">
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
