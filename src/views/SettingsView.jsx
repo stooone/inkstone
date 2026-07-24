@@ -92,6 +92,7 @@ const charsets = [
 export default function SettingsView() {
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const doBackup = useCallback(async () => {
     setBackingUp(true);
     try {
@@ -115,6 +116,7 @@ export default function SettingsView() {
   }, []);
 
   const doRestore = useCallback(() => {
+    if (restoring) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json';
@@ -128,6 +130,7 @@ export default function SettingsView() {
         try {
           const data = JSON.parse(ev.target.result);
           if (!confirm('Restoring will overwrite your current progress. Continue?')) return;
+          setRestoring(true);
           await localforage.clear();
           for (const k of Object.keys(data)) {
             await localforage.setItem(k, JSON.parse(data[k]));
@@ -135,13 +138,14 @@ export default function SettingsView() {
           location.reload();
         } catch(err) {
           alert('Restore failed: ' + err.message);
+          setRestoring(false);
         }
       };
       reader.readAsText(file);
     };
     document.body.appendChild(input);
     input.click();
-  }, []);
+  }, [restoring]);
 
   const doClearProgress = useCallback(async () => {
     const code = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -236,8 +240,15 @@ export default function SettingsView() {
           'Backup to a file'
         )}
       </div>
-      <div class="list-item clickable" id="btn-restore" onClick={doRestore}>
-        Restore from a file
+      <div class="list-item clickable" id="btn-restore" onClick={restoring ? undefined : doRestore}>
+        {restoring ? (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Restoring backup
+            <div class="spinner" style={{ margin: 0 }}></div>
+          </span>
+        ) : (
+          'Restore from a file'
+        )}
       </div>
 
       {/* Graphics */}
