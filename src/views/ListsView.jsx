@@ -279,12 +279,12 @@ function AddWordView({ listKey, onBack }) {
   const [definition, setDefinition] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState({ message: null, visible: false });
 
-  // Auto-dismiss toast after 2 seconds
+  // Auto-dismiss toast after 3 seconds
   useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
+    if (!toast.visible) return;
+    const timer = setTimeout(() => setToast({ message: null, visible: false }), 3000);
     return () => clearTimeout(timer);
   }, [toast]);
 
@@ -315,7 +315,7 @@ function AddWordView({ listKey, onBack }) {
       setTraditional('');
       setPinyin('');
       setDefinition('');
-      setToast('Word added successfully!');
+      setToast({ message: 'Word added successfully!', visible: true });
     } catch(e) {
       setError('Failed to save: ' + (e?.message || e));
     } finally {
@@ -332,7 +332,7 @@ function AddWordView({ listKey, onBack }) {
 
   return (
     <div class="add-word-view">
-      {toast && <div class="add-word-toast">{toast}</div>}
+      {toast.visible && <div class="srs-toast">{toast.message}</div>}
       <div class="add-word-header">
         <button class="btn-back" onClick={onBack}>← Back</button>
         <span class="add-word-title">Add Word</span>
