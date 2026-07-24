@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import { Vocabulary } from '/client/model/vocabulary';
 import { Lists } from '/client/model/lists';
 import { useReactive } from '../hooks/useReactive';
+import { timestamp } from '/lib/base';
 
 function computeStats() {
   try {
@@ -17,6 +18,18 @@ function computeStats() {
     const mastered = learning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8);
 
     const totalAttempts = learning.reduce((sum, e) => sum + (e.attempts || 0), 0);
+    // Due-date histogram: count cards due per day for the next 365 days
+    const now = timestamp();
+    const oneDay = 86400;
+    const dueCounts = new Array(366).fill(0);
+    for (const item of learning) {
+      if (item.next == null) continue;
+      const diff = item.next - now;
+      const dayOffset = Math.floor(diff / oneDay);
+      if (dayOffset >= 0 && dayOffset <= 365) {
+        dueCounts[dayOffset]++;
+      }
+    }
     // Leeches: items with success rate < 20% and due within 3 days
     const leechesCursor = Vocabulary.getRoteReviewItems();
     const leechesCount = leechesCursor.count();
@@ -44,13 +57,14 @@ function computeStats() {
       listStats,
       leeches: leechesCount,
       leechesItems,
+      dueCounts,
     };
   } catch (err) {
     console.error('Failed to compute stats:', err);
     return {
       total: 0, learning: 0, newCount: 0, mastered: 0,
       totalAttempts: 0, listStats: {},
-      leeches: 0, leechesItems: [],
+      leeches: 0, leechesItems: [], dueCounts: [],
     };
   }
 }
@@ -98,6 +112,49 @@ function LeechListItem({ word, attempts, successes, last, next }) {
       <span class="leech-word-char">{word}</span>
       <span class="leech-word-meta">{rate}% · {successes}/{attempts}</span>
     </div>
+  );
+}
+
+function DueGraph({ counts }) {
+  const maxCount = Math.max(1, ...counts);
+  const width = 800;
+  const height = 200;
+  const padLeft = 44;
+  const padBottom = 24;
+  const padTop = 8;
+  const padRight = 8;
+  const graphW = width - padLeft - padRight;
+  const graphH = height - padTop - padBottom;
+
+  const yTicks = 4;
+  const yLabels = Array.from({ length: yTicks + 1 }, (_, i) => Math.round((maxCount * i) / yTicks));
+  const xLabelDays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 365];
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', maxHeight: '200px', display: 'block' }}>
+      {yLabels.map((val, i) => {
+        const y = padTop + graphH - (val / maxCount) * graphH;
+        return (
+          <g key={`y-${i}`}>
+            <line x1={padLeft} y1={y} x2={padLeft + graphW} y2={y} stroke="var(--border)" strokeWidth={1} />
+            <text x={padLeft - 6} y={y + 4} textAnchor="end" fill="var(--text-muted)" fontSize={10}>{val}</text>
+          </g>
+        );
+      })}
+      {xLabelDays.map((day) => {
+        const x = padLeft + (day / 365) * graphW;
+        return (
+          <text key={`x-${day}`} x={x} y={padTop + graphH + 15} textAnchor="middle" fill="var(--text-muted)" fontSize={10}>{day}</text>
+        );
+      })}
+      {counts.map((count, day) => {
+        if (count === 0) return null;
+        const x = padLeft + (day / 365) * graphW;
+        const h = (count / maxCount) * graphH;
+        const y = padTop + graphH - h;
+        return <rect key={day} x={x} y={y} width={Math.max(graphW / 365, 1)} height={Math.max(h, 1)} fill="var(--accent)" opacity={0.7} />;
+      })}
+    </svg>
   );
 }
 
@@ -182,6 +239,16 @@ export default function StatisticsView() {
               )}
             </div>
           )}
+        </>
+      )}
+
+      {/* Due-date graph */}
+      {stats.totalAttempts > 0 && (
+        <>
+          <div class="section-divider">Cards Due Per Day</div>
+          <div class="stats-graph">
+            <DueGraph counts={stats.dueCounts} />
+          </div>
         </>
       )}
 
