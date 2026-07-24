@@ -190,7 +190,7 @@ export default function StatisticsView() {
       <div class="stats-legend">
         <p><strong>Learning</strong> — characters you have practiced at least once.</p>
         <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
-        <p><strong>Leeches</strong> — characters with a success rate below 20%, due for review within 3 days.</p>
+        <p><strong>Leeches</strong> — characters with at least 5 reviews and a success rate below 20%, due for review within 3 days.</p>
       </div>
     </div>
   );

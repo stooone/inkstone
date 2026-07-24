@@ -173,7 +173,7 @@ class Vocabulary {
       // Leeches: items with success rate under 20% and due within 3 days
       const attempts = entry[kIndices.attempts];
       const successes = entry[kIndices.successes];
-      return attempts > 0 && successes / attempts < 0.20 && entry[kIndices.next] < threeDays;
+      return attempts >= 5 && successes / attempts < 0.20 && entry[kIndices.next] < threeDays;
     });
   }
   static updateBlacklist(item, blacklisted) {

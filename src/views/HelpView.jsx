@@ -56,7 +56,7 @@ export default function HelpView() {
       <h2>Rote Review</h2>
       <p>
         Tap <strong>Rote Review</strong> for extra practice on your <em>leeches</em> —
-        characters you consistently struggle with (success rate below 20%) that are due
+        characters you consistently struggle with (at least 5 reviews, success rate below 20%) that are due
         within the next 3 days. Each character is automatically revealed and repeated
         3 times, like writing it on paper over and over. No spaced repetition updates
         occur, so your SRS schedule is unaffected.
@@ -134,7 +134,7 @@ export default function HelpView() {
       <h2>Leeches & Maximum Leeches</h2>
       <p>
         <strong>Leeches</strong> are characters that you consistently struggle with —
-        items with a success rate below 20% that are due for review within the next
+        items with at least 5 reviews, a success rate below 20%, that are due for review within the next
         3 days. You can view your current leeches on the <strong>Stats</strong> screen
         under the <strong>Activity</strong> section.
       </p>

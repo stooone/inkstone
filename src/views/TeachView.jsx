@@ -116,7 +116,7 @@ function RoteReviewErrorCard({ onNavigate }) {
     <div class="error-card">
       <h2>No cards available for rote review!</h2>
       <p style="color: var(--text-muted); font-size: 14px;">
-        You need leeches — items with a very low success rate ({'<20%'}) due within the next 3 days.
+        You need leeches — items with at least 5 reviews, a very low success rate ({'<20%'}), due within the next 3 days.
       </p>
       <button
         class="error-option-btn"
@@ -281,7 +281,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
     const result = item.tasks.reduce((max, t) => Math.max(max, t.result ?? 0), 0);
     // Check if the word is a leech: >0 attempts, success rate <20%
     const data = card.data;
-    const isLeech = data.attempts > 0 && data.successes / data.attempts < 0.20;
+    const isLeech = data.attempts >= 5 && data.successes / data.attempts < 0.20;
     // Calculate next interval and show toast for SRS review mode
     const interval = estimateNextInterval(data, result, timestamp());
     showNextDueToast(interval, isLeech);
