@@ -89,12 +89,16 @@ export function App() {
   useEffect(() => {
     waitForDataLoad().then(() => {
       Lists.loadEnabledLists().then(() => {
+        // Seed timing on fresh devices — must happen after vocabulary is populated
+        Timing.init();
         setDataReady(true);
       }).catch(() => {
+        Timing.init();
         setDataReady(true);
       });
     }).catch(() => {
       // Even if loading fails, show the app (data will be empty/default)
+      Timing.init();
       setDataReady(true);
     });
   }, []);

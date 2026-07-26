@@ -41,8 +41,6 @@ const tick = () => {
   const nextMidnight = todayMidnight + 86400;
   time_left.set(nextMidnight - now);
 
-  // If persistent data hasn't loaded yet, don't reset — wait until
-  // it's available to avoid overwriting saved counts with zeros.
   if (!counts) return;
 
   if (counts.ts < todayMidnight) {
@@ -199,6 +197,12 @@ class Timing {
   static getRemainder() { return remainder.get(); }
   static getTimeLeft() { return time_left.get(); }
   static shuffle() { shuffle(); }
+  /** Seed timing counts on first launch — call after all data is loaded. */
+  static init() {
+    if (!timing.get()) {
+      timing.set(newCounts(timestamp()));
+    }
+  }
 }
 
 export { Timing };
