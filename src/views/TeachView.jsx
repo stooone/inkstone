@@ -708,8 +708,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
       </div>
 
       {/* Controls */}
-      <div class="teach-controls">
-        <button id="ctrl-home"      class="teach-ctrl" title="Home"      onClick={() => navigate('index', 'back')}>⌂</button>
+      {!isError && <div class="teach-controls">
         <button id="ctrl-redo"      class="teach-ctrl" title="Redo"      onClick={onRedo}>↩</button>
         {roteMode ? (
           <button id="ctrl-skip"    class="teach-ctrl" title="Skip"      onClick={() => {
@@ -721,7 +720,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
         )}
         <button id="ctrl-blacklist" class="teach-ctrl" title="Blacklist" onClick={onBlacklist}>✕</button>
         <button id="ctrl-show"      class="teach-ctrl" title="Details"   onClick={onShow}>🔍</button>
-      </div>
+      </div>}
 
       {/* Toast notification */}
       {toast.visible && (

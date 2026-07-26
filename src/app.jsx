@@ -191,8 +191,8 @@ export function App() {
             </button>
           )}
           {(route === 'teach' || route === 'rote') && (
-            <button class="btn-back" onClick={() => navigate('index', 'back')} id="btn-teach-home">
-              ⌂
+            <button class="btn-back btn-back-home" onClick={() => navigate('index', 'back')} id="btn-teach-home">
+              ⌂ Home
             </button>
           )}
         </div>
