@@ -92,14 +92,19 @@ const charsets = [
 export default function SettingsView() {
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
+  const [backupProgress, setBackupProgress] = useState(0);
   const [restoring, setRestoring] = useState(false);
+  const [restoreProgress, setRestoreProgress] = useState(0);
   const doBackup = useCallback(async () => {
     setBackingUp(true);
+    setBackupProgress(0);
     try {
       const keys = await localforage.keys();
+      const total = keys.length;
       const data = {};
-      for (const k of keys) {
-        data[k] = JSON.stringify(await localforage.getItem(k));
+      for (let i = 0; i < total; i++) {
+        data[keys[i]] = JSON.stringify(await localforage.getItem(keys[i]));
+        setBackupProgress(Math.round(((i + 1) / total) * 100));
       }
       const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
       const url = URL.createObjectURL(blob);
@@ -131,9 +136,14 @@ export default function SettingsView() {
           const data = JSON.parse(ev.target.result);
           if (!confirm('Restoring will overwrite your current progress. Continue?')) return;
           setRestoring(true);
+          setRestoreProgress(0);
           await localforage.clear();
-          for (const k of Object.keys(data)) {
+          const entries = Object.keys(data);
+          const total = entries.length;
+          for (let i = 0; i < total; i++) {
+            const k = entries[i];
             await localforage.setItem(k, JSON.parse(data[k]));
+            setRestoreProgress(Math.round(((i + 1) / total) * 100));
           }
           location.reload();
         } catch(err) {
@@ -232,20 +242,24 @@ export default function SettingsView() {
       <div class="section-divider">Backups</div>
       <div class="list-item clickable" id="btn-backup" onClick={backingUp ? undefined : doBackup}>
         {backingUp ? (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            Creating backup
-            <div class="spinner" style={{ margin: 0 }}></div>
-          </span>
+          <div style={{ width: '100%' }}>
+            <div class="status" style={{ marginBottom: 8 }}>Creating backup… {backupProgress}%</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style={{ width: `${backupProgress}%` }}></div>
+            </div>
+          </div>
         ) : (
           'Backup to a file'
         )}
       </div>
       <div class="list-item clickable" id="btn-restore" onClick={restoring ? undefined : doRestore}>
         {restoring ? (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            Restoring backup
-            <div class="spinner" style={{ margin: 0 }}></div>
-          </span>
+          <div style={{ width: '100%' }}>
+            <div class="status" style={{ marginBottom: 8 }}>Restoring backup… {restoreProgress}%</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style={{ width: `${restoreProgress}%` }}></div>
+            </div>
+          </div>
         ) : (
           'Restore from a file'
         )}
