@@ -4,6 +4,23 @@ import { Lists } from '/client/model/lists';
 import { Settings } from '/client/model/settings';
 import { Vocabulary } from '/client/model/vocabulary';
 import { readList, removeList, writeList } from '/client/assets';
+import { timestamp } from '/lib/base';
+
+const kStaticLists = Object.freeze([
+  '100cr', 'manually', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
+]);
+
+const formatDue = (next) => {
+  if (next == null) return '—';
+  const now = timestamp();
+  const diff = next - now;
+  if (diff <= 0) return 'Due now';
+  if (diff < 60) return 'Due <1m';
+  if (diff < 3600) return `Due ${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `Due ${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `Due ${Math.floor(diff / 86400)}d`;
+  return `Due ${Math.floor(diff / 86400)}d+`;
+};
 
 // Sort key that pads trailing numbers so "HSK Level 2" < "HSK Level 10"
 const comparisonKey = (name) => {
@@ -27,32 +44,11 @@ const toListGroups = (allLists) => {
   }));
 };
 
-function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
+function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord, onViewWords }) {
   const [enabled, setEnabled] = useState(() => Lists.isListEnabled(listKey));
   const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [rows, setRows] = useState(null); // null = not loaded, [] = loaded
-  const [rowLoading, setRowLoading] = useState(false);
-  const [deletingIdx, setDeletingIdx] = useState(null);
-
-  // Load row data when expanded or when count is needed
-  const loadRows = useCallback(async () => {
-    if (rows !== null) return rows;
-    setRowLoading(true);
-    try {
-      const data = await readList(listKey);
-      setRows(data);
-      setRowLoading(false);
-      return data;
-    } catch(e) {
-      setRows([]);
-      setRowLoading(false);
-      return [];
-    }
-  }, [listKey, rows]);
-
-  // Preload count on mount
   const [count, setCount] = useState(null);
+
   useEffect(() => {
     let cancelled = false;
     readList(listKey).then((data) => {
@@ -106,63 +102,26 @@ function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
     }
   }, [listKey, label, enabled, onDelete]);
 
-  const handleAddClick = useCallback(() => {
+  const handleAddClick = useCallback((e) => {
+    e.stopPropagation();
     if (onAddWord) onAddWord();
   }, [onAddWord]);
 
-  const toggleExpand = useCallback(async () => {
-    if (!expanded) {
-      await loadRows();
-    }
-    setExpanded(!expanded);
-  }, [expanded, loadRows]);
+  const handleClick = useCallback(() => {
+    if (onViewWords) onViewWords(listKey);
+  }, [listKey, onViewWords]);
 
-  const deleteRow = useCallback(async (idx) => {
-    if (listKey !== 'manually') return;
-    const currentRows = rows || (await loadRows());
-    const rowToDelete = currentRows[idx];
-    if (!rowToDelete) return;
-    setDeletingIdx(idx);
-    try {
-      // Remove from vocabulary if enabled
-      if (enabled) {
-        const charset = Settings.get('character_set');
-        const word = rowToDelete[charset];
-        if (word) {
-          // Remove this list from the word's lists; if no lists remain, word is gone
-          Vocabulary.dropList(listKey);
-          // Re-add all other rows
-          const remaining = currentRows.filter((_, i) => i !== idx);
-          remaining.forEach((row) => {
-            const w = row[charset];
-            if (w) Vocabulary.addItem(w, listKey);
-          });
-        }
-      }
-      // Persist updated list
-      const updated = currentRows.filter((_, i) => i !== idx);
-      await writeList(listKey, updated);
-      setRows(updated);
-      setCount(updated.length);
-    } catch(e) {
-      alert('Delete failed: ' + (e?.message || e));
-    } finally {
-      setDeletingIdx(null);
-    }
-  }, [listKey, rows, enabled, loadRows]);
-
-  const canExpand = listKey === 'manually';
   const countStr = count !== null ? ` (${count})` : '';
 
   return (
     <div class="list-toggle-group">
-      <div class={`list-item${canExpand ? ' clickable' : ''}`} onClick={canExpand ? toggleExpand : undefined}>
+      <div class="list-item clickable" onClick={handleClick}>
         <span>{label}{countStr}</span>
         <div class="list-item-actions">
           {listKey === 'manually' && (
             <button
               class="add-btn"
-              onClick={(e) => { e.stopPropagation(); handleAddClick(); }}
+              onClick={handleAddClick}
               disabled={loading}
               title="Add words"
             >+</button>
@@ -187,35 +146,139 @@ function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord }) {
           </label>
         </div>
       </div>
-      {canExpand && expanded && (
-        <div class="list-words-expanded">
-          {rowLoading ? (
-            <div class="list-word-row muted">Loading…</div>
-          ) : rows && rows.length > 0 ? (
-            rows.map((row, idx) => {
-              const charset = Settings.get('character_set');
-              const displayWord = row[charset] || row.simplified || row.traditional || '?';
-              return (
-                <div class="list-word-row" key={idx}>
-                  <div class="list-word-info">
-                    <span class="list-word-char">{displayWord}</span>
-                    <span class="list-word-meta">{row.pinyin} — {row.definition}</span>
-                  </div>
-                  <button
-                    class="trash-btn"
-                    onClick={() => deleteRow(idx)}
-                    disabled={deletingIdx === idx}
-                    title="Delete word"
-                  >
-                    {deletingIdx === idx ? '…' : '🗑'}
-                  </button>
-                </div>
-              );
-            })
-          ) : (
-            <div class="list-word-row muted">No words added yet. Tap + to add.</div>
-          )}
-        </div>
+    </div>
+  );
+}
+
+function ListWordView({ listKey, onBack, onAddWord }) {
+  const [rows, setRows] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [deletingIdx, setDeletingIdx] = useState(null);
+  const [blacklistingIdx, setBlacklistingIdx] = useState(null);
+
+  const isBuiltIn = listKey !== 'manually' && kStaticLists.includes(listKey);
+  const listName = Lists.getAllLists()[listKey]?.name || listKey;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await readList(listKey);
+        if (!cancelled) setRows(data || []);
+      } catch(e) {
+        if (!cancelled) setRows([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [listKey]);
+
+  const vocabItems = Vocabulary.getAllItems();
+  const vocabIndex = {};
+  vocabItems.forEach(item => { vocabIndex[item.word] = item; });
+  const charset = Settings.get('character_set');
+
+  const blacklistItem = useCallback(async (idx) => {
+    const row = rows[idx];
+    if (!row) return;
+    setBlacklistingIdx(idx);
+    try {
+      const word = row[charset] || row.simplified || row.traditional;
+      Vocabulary.updateBlacklist({ word, pinyin: row.pinyin, definition: row.definition }, true);
+      setRows(prev => {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], _blacklisted: true };
+        return updated;
+      });
+    } catch(e) {
+      alert('Blacklist failed: ' + (e?.message || e));
+    } finally {
+      setBlacklistingIdx(null);
+    }
+  }, [rows, charset]);
+
+  const deleteRow = useCallback(async (idx) => {
+    const currentRows = rows;
+    const rowToDelete = currentRows[idx];
+    if (!rowToDelete) return;
+    setDeletingIdx(idx);
+    try {
+      const enabled = Lists.isListEnabled(listKey);
+      if (enabled) {
+        const word = rowToDelete[charset] || rowToDelete.simplified || rowToDelete.traditional;
+        if (word) {
+          Vocabulary.dropList(listKey);
+          const remaining = currentRows.filter((_, i) => i !== idx);
+          remaining.forEach((row) => {
+            const w = row[charset] || row.simplified || row.traditional;
+            if (w) Vocabulary.addItem(w, listKey);
+          });
+        }
+      }
+      const updated = currentRows.filter((_, i) => i !== idx);
+      await writeList(listKey, updated);
+      setRows(updated);
+    } catch(e) {
+      alert('Delete failed: ' + (e?.message || e));
+    } finally {
+      setDeletingIdx(null);
+    }
+  }, [rows, listKey, charset]);
+
+  const handleAddWord = useCallback(() => {
+    if (onAddWord) {
+      onAddWord();
+    }
+  }, [onAddWord]);
+
+  return (
+    <div class="lists-list">
+      <div class="list-word-view-header">
+        <button class="btn-back" onClick={onBack}>← Back</button>
+        <span class="list-word-view-title">{listName}</span>
+        {listKey === 'manually' && (
+          <button class="add-btn" onClick={handleAddWord} title="Add words">+</button>
+        )}
+      </div>
+      {loading ? (
+        <div class="list-word-row muted">Loading…</div>
+      ) : rows && rows.length > 0 ? (
+        rows.map((row, idx) => {
+          const word = row[charset] || row.simplified || row.traditional || '?';
+          const vocabEntry = vocabIndex[word];
+          const due = vocabEntry ? formatDue(vocabEntry.next) : '—';
+          return (
+            <div class="list-word-row" key={idx}>
+              <div class="list-word-info">
+                <span class="list-word-char" style={row._blacklisted ? 'opacity:0.4;text-decoration:line-through' : ''}>{word}</span>
+                <span class="list-word-meta">{row.pinyin} — {row.definition}</span>
+              </div>
+              <span class="list-word-due">{due}</span>
+              {isBuiltIn ? (
+                <button
+                  class="blacklist-btn"
+                  onClick={() => blacklistItem(idx)}
+                  disabled={blacklistingIdx === idx || row._blacklisted}
+                  title="Blacklist word"
+                >
+                  {blacklistingIdx === idx ? '…' : row._blacklisted ? '✓' : '✕'}
+                </button>
+              ) : (
+                <button
+                  class="trash-btn"
+                  onClick={() => deleteRow(idx)}
+                  disabled={deletingIdx === idx}
+                  title="Delete word"
+                >
+                  {deletingIdx === idx ? '…' : '🗑'}
+                </button>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <div class="list-word-row muted">No words in this list.</div>
       )}
     </div>
   );
@@ -267,10 +330,6 @@ function BlacklistView({ onBack }) {
     </div>
   );
 }
-
-const kStaticLists = Object.freeze([
-  '100cr', 'manually', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
-]);
 
 function AddWordView({ listKey, onBack }) {
   const [simplified, setSimplified] = useState('');
@@ -397,7 +456,8 @@ function AddWordView({ listKey, onBack }) {
 }
 
 export default function ListsView() {
-  const [subview, setSubview] = useState(null); // null | 'blacklist' | 'addword'
+  const [subview, setSubview] = useState(null); // null | 'blacklist' | 'addword' | 'list-<key>'
+  const [addWordListKey, setAddWordListKey] = useState('manually');
   const [allLists, setAllLists] = useState(() => Lists.getAllLists());
   const groups = toListGroups(allLists);
 
@@ -426,6 +486,15 @@ export default function ListsView() {
   const goBackFromSubview = useCallback(() => {
     history.back();
   }, []);
+
+  const viewWords = useCallback((listKey) => {
+    goToSubview('list-' + listKey);
+  }, [goToSubview]);
+
+  const handleAddWord = useCallback((listKey) => {
+    setAddWordListKey(listKey);
+    goToSubview('addword');
+  }, [goToSubview]);
 
   const doImport = useCallback(() => {
     const input = document.createElement('input');
@@ -517,7 +586,17 @@ export default function ListsView() {
     return <BlacklistView onBack={goBackFromSubview} />;
   }
   if (subview === 'addword') {
-    return <AddWordView listKey="manually" onBack={goBackFromSubview} />;
+    return <AddWordView listKey={addWordListKey} onBack={goBackFromSubview} />;
+  }
+  if (subview && subview.startsWith('list-')) {
+    const listKey = subview.slice(5);
+    return (
+      <ListWordView
+        listKey={listKey}
+        onBack={goBackFromSubview}
+        onAddWord={listKey === 'manually' ? () => handleAddWord(listKey) : null}
+      />
+    );
   }
 
   return (
@@ -543,7 +622,8 @@ export default function ListsView() {
                 listKey={list.id}
                 isCustom={!kStaticLists.includes(list.id)}
                 onDelete={refreshLists}
-                onAddWord={list.id === 'manually' ? () => goToSubview('addword') : null}
+                onAddWord={list.id === 'manually' ? () => handleAddWord(list.id) : null}
+                onViewWords={viewWords}
               />
           ))}
         </div>
