@@ -5,6 +5,7 @@ import { Settings } from '/client/model/settings';
 import { Vocabulary } from '/client/model/vocabulary';
 import { readList, removeList, writeList } from '/client/assets';
 import { timestamp } from '/lib/base';
+import WordDetailView from './WordDetailView';
 
 const kStaticLists = Object.freeze([
   '100cr', 'manually', 'nhsk1', 'nhsk2', 'nhsk3', 'nhsk4', 'nhsk5', 'nhsk6',
@@ -150,7 +151,7 @@ function ListToggle({ id, label, listKey, isCustom, onDelete, onAddWord, onViewW
   );
 }
 
-function ListWordView({ listKey, onBack, onAddWord }) {
+function ListWordView({ listKey, onBack, onAddWord, onViewWord }) {
   const [rows, setRows] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deletingIdx, setDeletingIdx] = useState(null);
@@ -249,7 +250,7 @@ function ListWordView({ listKey, onBack, onAddWord }) {
           const vocabEntry = vocabIndex[word];
           const due = vocabEntry ? formatDue(vocabEntry.next) : '—';
           return (
-            <div class="list-word-row" key={idx}>
+            <div class="list-word-row clickable" key={idx} onClick={() => onViewWord(row, listKey)}>
               <div class="list-word-info">
                 <span class="list-word-char" style={row._blacklisted ? 'opacity:0.4;text-decoration:line-through' : ''}>{word}</span>
                 <span class="list-word-meta">{row.pinyin} — {row.definition}</span>
@@ -458,6 +459,7 @@ function AddWordView({ listKey, onBack }) {
 export default function ListsView() {
   const [subview, setSubview] = useState(null); // null | 'blacklist' | 'addword' | 'list-<key>'
   const [addWordListKey, setAddWordListKey] = useState('manually');
+  const [wordDetail, setWordDetail] = useState(null); // {row, listKey} when viewing word detail
   const [allLists, setAllLists] = useState(() => Lists.getAllLists());
   const groups = toListGroups(allLists);
 
@@ -469,14 +471,16 @@ export default function ListsView() {
   // main lists view instead of leaving the page.
   useEffect(() => {
     const onPopState = () => {
-      if (subview !== null) {
+      if (wordDetail) {
+        setWordDetail(null);
+      } else if (subview !== null) {
         setSubview(null);
         refreshLists();
       }
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [subview, refreshLists]);
+  }, [subview, wordDetail, refreshLists]);
 
   const goToSubview = useCallback((view) => {
     history.pushState({ route: 'lists', subview: view }, '', '');
@@ -490,6 +494,14 @@ export default function ListsView() {
   const viewWords = useCallback((listKey) => {
     goToSubview('list-' + listKey);
   }, [goToSubview]);
+
+  const viewWord = useCallback((row, listKey) => {
+    setWordDetail({ row, listKey });
+  }, []);
+
+  const handleBackFromDetail = useCallback(() => {
+    setWordDetail(null);
+  }, []);
 
   const handleAddWord = useCallback((listKey) => {
     setAddWordListKey(listKey);
@@ -582,6 +594,10 @@ export default function ListsView() {
     input.click();
   }, []);
 
+  if (wordDetail) {
+    return <WordDetailView row={wordDetail.row} onBack={handleBackFromDetail} />;
+  }
+
   if (subview === 'blacklist') {
     return <BlacklistView onBack={goBackFromSubview} />;
   }
@@ -595,6 +611,7 @@ export default function ListsView() {
         listKey={listKey}
         onBack={goBackFromSubview}
         onAddWord={listKey === 'manually' ? () => handleAddWord(listKey) : null}
+        onViewWord={viewWord}
       />
     );
   }

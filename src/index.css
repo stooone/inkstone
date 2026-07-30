@@ -1573,3 +1573,48 @@ html, body {
   opacity: .9;
 }
 
+/* ── Word Detail View ── */
+.word-detail-view {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 8px 12px 40px;
+}
+
+.word-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.word-detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.word-detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.word-detail-char {
+  font-family: var(--font-cjk);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.word-detail-meta {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+

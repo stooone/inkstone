@@ -4,6 +4,7 @@ import { Vocabulary } from '/client/model/vocabulary';
 import { Lists } from '/client/model/lists';
 import { useReactive } from '../hooks/useReactive';
 import { timestamp } from '/lib/base';
+import WordDetailView from './WordDetailView';
 
 function computeStats() {
   try {
@@ -30,7 +31,7 @@ function computeStats() {
         dueCounts[dayOffset]++;
       }
     }
-    // Leeches: items with success rate < 20% and due within 3 days
+    // Leeches: items with success rate < 30% and due within 3 days
     const leechesCursor = Vocabulary.getRoteReviewItems();
     const leechesCount = leechesCursor.count();
     const leechesItems = leechesCursor.fetch();
@@ -105,10 +106,10 @@ function SegmentedProgressBar({ mastered, learning, total }) {
   );
 }
 
-function LeechListItem({ word, attempts, successes, last, next }) {
+function LeechListItem({ word, attempts, successes, last, next, onClick }) {
   const rate = attempts > 0 ? Math.round((successes / attempts) * 100) : 0;
   return (
-    <div class="leech-word-row">
+    <div class="leech-word-row clickable" onClick={onClick}>
       <span class="leech-word-char">{word}</span>
       <span class="leech-word-meta">{rate}% · {successes}/{attempts}</span>
     </div>
@@ -161,6 +162,11 @@ function DueGraph({ counts }) {
 export default function StatisticsView() {
   const stats = useReactive(computeStats, []);
   const [leechesOpen, setLeechesOpen] = useState(false);
+  const [detailWord, setDetailWord] = useState(null);
+
+  if (detailWord) {
+    return <WordDetailView row={detailWord} onBack={() => setDetailWord(null)} />;
+  }
 
   return (
     <div class="stats-view">
@@ -233,6 +239,7 @@ export default function StatisticsView() {
                       successes={item.successes}
                       last={item.last}
                       next={item.next}
+                      onClick={() => setDetailWord(item)}
                     />
                   ))}
                 </div>
@@ -257,7 +264,7 @@ export default function StatisticsView() {
       <div class="stats-legend">
         <p><strong>Learning</strong> — characters you have practiced at least once.</p>
         <p><strong>Mastered</strong> — characters with at least 5 reviews and a success rate of 80% or higher.</p>
-        <p><strong>Leeches</strong> — characters with at least 5 reviews and a success rate below 20%, due for review within 3 days.</p>
+        <p><strong>Leeches</strong> — characters with at least 5 reviews and a success rate below 30%, due for review within 3 days.</p>
       </div>
     </div>
   );
