@@ -14,7 +14,7 @@ function computeStats() {
 
     const total = allItems.length;
     const learning = allItems.filter(e => e && e.attempts > 0);
-    const new_ = allItems.filter(e => e && e.attempts === 0);
+    const unseen = allItems.filter(e => e && e.attempts === 0);
     // Mastered: at least 5 attempts and success rate >= 80%
     const mastered = learning.filter(e => e.attempts >= 5 && e.successes != null && (e.successes / e.attempts) >= 0.8);
 
@@ -52,7 +52,7 @@ function computeStats() {
     return {
       total,
       learning: learning.length,
-      newCount: new_.length,
+      newCount: unseen.length,
       mastered: mastered.length,
       totalAttempts,
       listStats,
@@ -176,7 +176,7 @@ export default function StatisticsView() {
         <div class="stats-circle-row">
           <div class="stat-circle-item">
             <CircleStat value={stats.newCount} color="var(--ink-muted)" />
-            <span class="stat-circle-label">New</span>
+            <span class="stat-circle-label">Unseen</span>
           </div>
           <div class="stat-circle-connector"></div>
           <div class="stat-circle-item">
@@ -208,7 +208,7 @@ export default function StatisticsView() {
               <div class="list-stat-detail">
                 <span>{ls.mastered} mastered</span>
                 <span>{ls.learning - ls.mastered} learning</span>
-                <span>{ls.total - ls.learning} new</span>
+                <span>{ls.total - ls.learning} unseen</span>
               </div>
             </div>
           ))}

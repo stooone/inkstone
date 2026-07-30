@@ -163,7 +163,7 @@ class Vocabulary {
     vocabulary.depend();
     return cache.active.map(materialize);
   }
-  static getNewItems() {
+  static getUnseenItems() {
     return new Cursor((entry) => entry[kIndices.attempts] === 0, true);
   }
   static getRoteReviewItems() {

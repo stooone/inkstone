@@ -79,7 +79,7 @@ export default function WordDetailView({ row, onBack }) {
           <div class="metadata-field">
             <span class="field-label">Status</span>
             <span class="field-value">
-              {attempts === 0 ? 'New' : isLeech ? 'Leech' : isMastered ? 'Mastered' : 'Learning'}
+              {attempts === 0 ? 'Unseen' : isLeech ? 'Leech' : isMastered ? 'Mastered' : 'Learning'}
             </span>
           </div>
         </div>

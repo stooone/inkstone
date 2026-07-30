@@ -87,7 +87,7 @@ const draw = (deck, ts) => {
 }
 
 const getters = {
-  adds:     (ts) => Vocabulary.getNewItems(),
+  adds:     (ts) => Vocabulary.getUnseenItems(),
   extras:   (ts) => Vocabulary.getExtraItems(ts),
   failures: (ts) => {
     const todayMidnight = getTodayMidnight();
@@ -111,14 +111,14 @@ export const shuffle = () => {
   if (!counts || !left) return;
 
   if (left.adds + left.reviews > 0) {
-    // New cards are only introduced after 80% of reviews are done,
-    // so falling behind doesn't pile on even more new cards.
+    // Unseen cards are only introduced after 80% of reviews are done,
+    // so falling behind doesn't pile on even more unseen cards.
     const reviewsDone = counts.reviews;
     const reviewsTotal = reviewsDone + left.reviews;
     const reviewThreshold = 0.8 * reviewsTotal;
-    const canAddNew = reviewsDone >= reviewThreshold || left.reviews === 0;
+    const canAddUnseen = reviewsDone >= reviewThreshold || left.reviews === 0;
 
-    if (canAddNew) {
+    if (canAddUnseen) {
       const index = Math.random() * (left.adds + left.reviews);
       const deck = index < left.adds ? 'adds' : 'reviews';
       next_card.set(draw(deck, counts.ts));
@@ -153,7 +153,7 @@ Tracker.autorun(() => {
     if (limit <= 0) return 0;
     return Math.min(getters[k](counts.ts).count(), limit);
   });
-  // If leeches exceed the allowed maximum, suppress new cards entirely
+  // If leeches exceed the allowed maximum, suppress unseen cards entirely
   const maxLeeches = Settings.get('max_leeches');
   if (maxLeeches > 0 && Vocabulary.getRoteReviewItems().count() >= maxLeeches) {
     value.adds = 0;
