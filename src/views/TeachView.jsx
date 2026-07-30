@@ -709,6 +709,7 @@ export default function TeachView({ showPopup, hidePopup, navigate, roteMode }) 
 
       {/* Controls */}
       {!isError && <div class="teach-controls">
+        <button id="ctrl-home"      class="teach-ctrl" title="Home"      onClick={() => navigate('index', 'back')}>⌂</button>
         <button id="ctrl-redo"      class="teach-ctrl" title="Redo"      onClick={onRedo}>↩</button>
         {roteMode ? (
           <button id="ctrl-skip"    class="teach-ctrl" title="Skip"      onClick={() => {
