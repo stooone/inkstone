@@ -126,7 +126,7 @@ export default function HelpView() {
       <h2>Spaced Repetition</h2>
       <p>
         Inkstone uses a spaced repetition system (SRS). Cards are scheduled based
-        on how well you wrote them. Unseen cards and reviews are limited per day
+        on how well you wrote them. New cards and reviews are limited per day
         (configurable in Settings).
       </p>
 
@@ -140,8 +140,8 @@ export default function HelpView() {
       <p>
         The <strong>Maximum Leeches</strong> setting (in <strong>Settings → Scheduling</strong>)
         lets you set a cap on how many leeches are acceptable. If the number of leeches
-        reaches or exceeds this limit, no <em>unseen</em> cards will be introduced,
-        overriding the "Unseen Cards Per Day" setting. This helps you focus on reviewing
+        reaches or exceeds this limit, no <em>new</em> cards will be introduced,
+        overriding the "New Cards Per Day" setting. This helps you focus on reviewing
         and improving your problematic characters before adding more to your workload.
       </p>
 
