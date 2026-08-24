@@ -1,6 +1,8 @@
 import { h } from 'preact';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { Vocabulary } from '/client/model/vocabulary';
 import { Settings } from '/client/model/settings';
+import { readItem } from '/client/assets';
 import { timestamp } from '/lib/base';
 
 const fmtDate = (ts) => {
@@ -20,6 +22,31 @@ export default function WordDetailView({ row, onBack }) {
   const vocabEntry = Vocabulary.getAllItems().find(e => e.word === word) || (row.word ? row : null);
   const charDisplay = word;
 
+  // Load full item data (pinyin, definition) when the row doesn't include it
+  // (e.g. leech items from Vocabulary.getRoteReviewItems() only have word/lists/attempts/etc.)
+  const [fullData, setFullData] = useState(null);
+  const loadedWordRef = useRef(null);
+
+  useEffect(() => {
+    if (row.pinyin && row.definition) return;
+    if (loadedWordRef.current === word) return;
+    const lists = vocabEntry?.lists || [];
+    if (lists.length === 0) return;
+    let cancelled = false;
+    readItem({ word, lists }, charset).then((data) => {
+      if (!cancelled) {
+        setFullData(data);
+        loadedWordRef.current = word;
+      }
+    }).catch((err) => {
+      console.error('Failed to load word details:', err);
+    });
+    return () => { cancelled = true; };
+  }, [row, word, charset, vocabEntry]);
+
+  const pinyin = row.pinyin || fullData?.pinyin || '—';
+  const definition = row.definition || fullData?.definition || '—';
+
   const attempts = vocabEntry?.attempts ?? 0;
   const successes = vocabEntry?.successes ?? 0;
   const successRate = attempts > 0 ? Math.round((successes / attempts) * 100) : 0;
@@ -36,7 +63,7 @@ export default function WordDetailView({ row, onBack }) {
 
       <div class="word-detail-card">
         <div class="word-detail-char">{charDisplay}</div>
-        <div class="word-detail-meta">{row.pinyin || '—'} — {row.definition || '—'}</div>
+        <div class="word-detail-meta">{pinyin} — {definition}</div>
       </div>
 
       <div class="panel-section">
