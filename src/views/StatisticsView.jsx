@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import { Vocabulary } from '/client/model/vocabulary';
 import { Lists } from '/client/model/lists';
 import { useReactive } from '../hooks/useReactive';
@@ -164,8 +164,28 @@ export default function StatisticsView() {
   const [leechesOpen, setLeechesOpen] = useState(false);
   const [detailWord, setDetailWord] = useState(null);
 
+  const openDetail = useCallback((item) => {
+    history.pushState({ route: 'stats', detail: true }, '', '');
+    setDetailWord(item);
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    history.back();
+  }, []);
+
+  // Listen for Android/browser back button to close the word detail
+  useEffect(() => {
+    const onPopState = () => {
+      if (detailWord) {
+        setDetailWord(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [detailWord]);
+
   if (detailWord) {
-    return <WordDetailView row={detailWord} onBack={() => setDetailWord(null)} />;
+    return <WordDetailView row={detailWord} onBack={closeDetail} />;
   }
 
   return (
@@ -239,7 +259,7 @@ export default function StatisticsView() {
                       successes={item.successes}
                       last={item.last}
                       next={item.next}
-                      onClick={() => setDetailWord(item)}
+                      onClick={() => openDetail(item)}
                     />
                   ))}
                 </div>
